@@ -1,6 +1,6 @@
 ﻿using LiveMap.Data.Models;
 
-namespace LiveMap.Models.Picture
+namespace LiveMap.Web.Models.Picture
 {
     public class PictureViewModel
     {

@@ -1,0 +1,13 @@
+﻿@model IEnumerable<LiveMap.Web.Models.Picture.PictureViewModel>
+
+<h2>Pictures</h2>
+
+@foreach (var pic in Model)
+{
+    <div>
+        <img src="@pic.URL" width="200" />
+        <p>@pic.FolderName</p>
+    </div>
+}
+
+<a asp-action="Create">Upload Picture</a>

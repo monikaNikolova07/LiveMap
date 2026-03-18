@@ -1,6 +1,6 @@
 ﻿using LiveMap.Data.Models;
 
-namespace LiveMap.Models.Profile
+namespace LiveMap.Web.Models.Profile
 {
     public class ProfileViewModel
     {

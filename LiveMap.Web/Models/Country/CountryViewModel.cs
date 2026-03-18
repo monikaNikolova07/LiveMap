@@ -1,4 +1,4 @@
-﻿namespace LiveMap.Models.Country
+﻿namespace LiveMap.Web.Models.Country
 {
     public class CountryViewModel
     {

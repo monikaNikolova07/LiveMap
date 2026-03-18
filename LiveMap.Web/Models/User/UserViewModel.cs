@@ -1,4 +1,4 @@
-﻿namespace LiveMap.Models.User
+﻿namespace LiveMap.Web.Models.User
 {
     public class UserViewModel
     {

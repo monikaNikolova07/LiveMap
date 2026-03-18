@@ -1,7 +1,7 @@
 ﻿using LiveMap.Data.Models;
 using System.ComponentModel.DataAnnotations;
 
-namespace LiveMap.Models.Picture
+namespace LiveMap.Web.Models.Picture
 {
     public class PictureCreateViewModel
     {

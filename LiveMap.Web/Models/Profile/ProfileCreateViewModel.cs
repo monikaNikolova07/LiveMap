@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace LiveMap.Models.Profile
+namespace LiveMap.Web.Models.Profile
 {
     public class ProfileCreateViewModel
     {
-        
+
     }
 }

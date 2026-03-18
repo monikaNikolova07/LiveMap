@@ -1,10 +1,11 @@
 ﻿using LiveMap.Data;
 using LiveMap.Data.Models;
-using LiveMap.Models.Folder;
+using LiveMap.Web.Models.Folder;
+using LiveMap.Web.Models.Folder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace LiveMap.Controllers
+namespace LiveMap.Web.Controllers
 {
     public class FolderController : Controller
     {
@@ -12,7 +13,7 @@ namespace LiveMap.Controllers
 
         public FolderController(LiveMapDbContext _context)
         {
-            this.context = _context;
+            context = _context;
         }
 
         /*public IActionResult Create()

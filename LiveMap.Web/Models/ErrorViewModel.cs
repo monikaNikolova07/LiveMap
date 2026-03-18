@@ -1,4 +1,4 @@
-namespace LiveMap.Models
+namespace LiveMap.Web.Models
 {
     public class ErrorViewModel
     {

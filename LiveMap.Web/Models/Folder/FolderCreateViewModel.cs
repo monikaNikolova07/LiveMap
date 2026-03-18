@@ -1,7 +1,7 @@
 ﻿using LiveMap.Data.Models;
 using System.ComponentModel.DataAnnotations;
 
-namespace LiveMap.Models.Folder
+namespace LiveMap.Web.Models.Folder
 {
     public class FolderCreateViewModel
     {

@@ -1,9 +1,9 @@
 ﻿using LiveMap.Data;
-using LiveMap.Models.Profile;
+using LiveMap.Web.Models.Profile;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace LiveMap.Controllers
+namespace LiveMap.Web.Controllers
 {
     public class ProfileController : Controller
     {
@@ -30,5 +30,25 @@ namespace LiveMap.Controllers
 
             return View(profiles);
         }
+
+        /* za VIew na Create /nqmam metod oshte/
+         * @model LiveMap.Web.Models.Profile.ProfileCreateViewModel
+
+            <h2>Create Profile</h2>
+
+            <form asp-action="Create">
+              <div>
+              <label>Username</label>
+              <input asp-for="Username" />
+             </div>
+
+             <div>
+                 <label>Bio</label>
+                 <textarea asp-for="Bio"></textarea>
+            </div>
+
+             <button type="submit">Create</button>
+            </form>
+         */
     }
 }

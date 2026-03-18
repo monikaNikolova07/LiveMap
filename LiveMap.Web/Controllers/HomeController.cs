@@ -1,8 +1,8 @@
-using LiveMap.Models;
+using LiveMap.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
-namespace LiveMap.Controllers
+namespace LiveMap.Web.Controllers
 {
     public class HomeController : Controller
     {

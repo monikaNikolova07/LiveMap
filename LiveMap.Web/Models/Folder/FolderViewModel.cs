@@ -1,6 +1,6 @@
 ﻿using LiveMap.Data.Models;
 
-namespace LiveMap.Models.Folder
+namespace LiveMap.Web.Models.Folder
 {
     public class FolderViewModel
     {

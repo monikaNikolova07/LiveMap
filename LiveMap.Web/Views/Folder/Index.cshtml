@@ -1,0 +1,21 @@
+﻿@model IEnumerable<LiveMap.Web.Models.Folder.FolderViewModel>
+
+<h2>Folders</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var folder in Model)
+        {
+            <tr>
+                <td>@folder.Name</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Create" class="btn btn-primary">Create Folder</a>

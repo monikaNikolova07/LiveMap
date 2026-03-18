@@ -1,10 +1,11 @@
 ﻿using LiveMap.Data.Models;
 using LiveMap.Data;
 using Microsoft.AspNetCore.Mvc;
-using LiveMap.Models.Picture;
+using LiveMap.Web.Models.Picture;
 using Microsoft.EntityFrameworkCore;
+using LiveMap.Web.Models.Picture;
 
-namespace LiveMap.Controllers
+namespace LiveMap.Web.Controllers
 {
     public class PictureController : Controller
     {

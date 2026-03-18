@@ -3,7 +3,7 @@ using LiveMap.Data.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace LiveMap
+namespace LiveMap.Web
 {
     public class Program
     {

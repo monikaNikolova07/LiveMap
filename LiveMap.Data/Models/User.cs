@@ -10,17 +10,17 @@ namespace LiveMap.Data.Models
 {
     public class User : IdentityUser<Guid>
     {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
 
         [ForeignKey(nameof(ProfileId))]
-        public Profile Profile { get; set; }
+        public Profile? Profile { get; set; }
         public Guid ProfileId { get; set; }
 
         [InverseProperty(nameof(UserFollowing.User))]
-        public ICollection<UserFollowing> Followings { get; set; }
+        public ICollection<UserFollowing>? Followings { get; set; }
 
         [InverseProperty(nameof(UserFollowing.Following))]
-        public ICollection<UserFollowing> Followers { get; set; }
+        public ICollection<UserFollowing>? Followers { get; set; }
     }
 }
