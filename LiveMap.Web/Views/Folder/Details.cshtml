@@ -1,0 +1,32 @@
+﻿@using LiveMap.Data.Models
+@model Folder
+
+<h2>@Model.Name</h2>
+
+<p>Accessibility: @Model.Acssesability</p>
+
+<div class="d-flex gap-2 mb-3">
+    <a asp-action="Pictures" asp-route-folderId="@Model.Id" class="btn btn-primary">
+        View All Pictures
+    </a>
+    <a asp-action="Upload" asp-route-folderId="@Model.Id" class="btn btn-success">
+        Upload Pictures
+    </a>
+</div>
+
+<h3>Existing Pictures:</h3>
+@if (Model.Pictures != null && Model.Pictures.Any())
+{
+    <div class="row">
+        @foreach (var pic in Model.Pictures)
+        {
+            <div class="col-3 mb-2">
+                <img src="@pic.URL" class="img-fluid rounded" />
+            </div>
+        }
+    </div>
+}
+else
+{
+    <p>No pictures uploaded yet.</p>
+}

@@ -1,10 +1,12 @@
 ﻿using LiveMap.Data;
 using LiveMap.Web.Models.Profile;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace LiveMap.Web.Controllers
 {
+    [Authorize]
     public class ProfileController : Controller
     {
         private readonly LiveMapDbContext context;

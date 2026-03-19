@@ -1,0 +1,18 @@
+﻿@using LiveMap.Data.Models
+@{
+    var folderId = ViewBag.FolderId;
+}
+
+<h2>Upload Picture</h2>
+
+<form asp-action="Upload" asp-route-folderId="@folderId" method="post" enctype="multipart/form-data">
+    <div class="form-group mb-2">
+        <label>Select File</label>
+        <input type="file" name="file" class="form-control" />
+        <span asp-validation-summary="All" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-success">Upload</button>
+</form>
+
+<a asp-action="Details" asp-route-id="@folderId" class="btn btn-secondary mt-2">Back to Folder</a>

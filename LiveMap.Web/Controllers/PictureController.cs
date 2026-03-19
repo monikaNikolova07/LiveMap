@@ -3,10 +3,11 @@ using LiveMap.Data;
 using Microsoft.AspNetCore.Mvc;
 using LiveMap.Web.Models.Picture;
 using Microsoft.EntityFrameworkCore;
-using LiveMap.Web.Models.Picture;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LiveMap.Web.Controllers
 {
+    [Authorize]
     public class PictureController : Controller
     {
         private readonly LiveMapDbContext context;

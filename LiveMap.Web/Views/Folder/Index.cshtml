@@ -1,4 +1,5 @@
-﻿@model IEnumerable<LiveMap.Web.Models.Folder.FolderViewModel>
+﻿@using LiveMap.Data.Models
+@model IEnumerable<LiveMap.Web.Models.Folder.FolderViewModel>
 
 <h2>Folders</h2>
 
@@ -6,6 +7,7 @@
     <thead>
         <tr>
             <th>Name</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -13,6 +15,17 @@
         {
             <tr>
                 <td>@folder.Name</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@folder.Id" class="btn btn-primary">
+                        View All Pictures
+                    </a>
+                    <a asp-action="Upload" asp-route-folderId="@folder.Id" class="btn btn-success">
+                        Upload
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@folder.Id" class="btn btn-danger">
+                        Delete
+                    </a>
+                </td>
             </tr>
         }
     </tbody>

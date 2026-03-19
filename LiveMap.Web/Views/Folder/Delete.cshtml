@@ -1,0 +1,16 @@
+﻿@using LiveMap.Data.Models
+@model Folder
+
+@{
+    ViewData["Title"] = "Delete Folder";
+}
+
+<h2>Delete Folder: @Model.Name</h2>
+
+<p>Сигурни ли сте, че искате да изтриете тази папка? Всички снимки в нея ще бъдат изтрити!</p>
+
+<form asp-action="Delete" method="post" onsubmit="return confirm('Наистина ли искате да изтриете папката и всички снимки? Това е необратимо!');">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Delete Folder</button>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">Cancel</a>
+</form>

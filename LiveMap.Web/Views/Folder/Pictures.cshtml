@@ -1,0 +1,15 @@
+﻿@using LiveMap.Data.Models
+@model IEnumerable<Picture>
+
+<h2>All Pictures</h2>
+
+<a asp-action="Details" asp-route-id="@ViewBag.FolderId" class="btn btn-secondary mb-2">Back to Folder</a>
+
+<div class="row">
+    @foreach (var pic in Model)
+    {
+        <div class="col-3 mb-2">
+            <img src="@pic.URL" class="img-fluid rounded" />
+        </div>
+    }
+</div>

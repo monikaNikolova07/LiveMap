@@ -12,10 +12,7 @@ namespace LiveMap.Data.Models
     {
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
-
-        [ForeignKey(nameof(ProfileId))]
         public Profile? Profile { get; set; }
-        public Guid ProfileId { get; set; }
 
         [InverseProperty(nameof(UserFollowing.User))]
         public ICollection<UserFollowing>? Followings { get; set; }
