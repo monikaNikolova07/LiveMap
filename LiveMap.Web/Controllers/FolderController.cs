@@ -1,4 +1,6 @@
-﻿using LiveMap.Data;
+﻿using LiveMap.Core.Contracts;
+using LiveMap.Core.DTOs.Folders;
+using LiveMap.Core.Services;
 using LiveMap.Data.Models;
 using LiveMap.Web.Models.Folder;
 using Microsoft.AspNetCore.Authorization;
@@ -12,16 +14,16 @@ namespace LiveMap.Web.Controllers
     [Authorize]
     public class FolderController : Controller
     {
-        private readonly LiveMapDbContext context;
+        private readonly IFolderService folderService;
         private readonly UserManager<User> userManager;
 
-        public FolderController(LiveMapDbContext _context, UserManager<User> _userManager)
+        public FolderController(IFolderService _folderService, UserManager<User> _userManager)
         {
-            context = _context;
-            userManager = _userManager;
+            this.folderService = _folderService;
+            this.userManager = _userManager;
         }
 
-        public async Task<IActionResult> Index()
+        /*public async Task<IActionResult> Index()
         {
             var folders = await context.Folders
                 .Select(f => new FolderViewModel
@@ -36,9 +38,28 @@ namespace LiveMap.Web.Controllers
                 .ToListAsync();
 
             return View(folders);
+        }*/
+
+        public async Task<IActionResult> Index()
+        {
+            var folders = await folderService.GetAllAsync();
+            return View(folders);
         }
 
         public IActionResult Create()
+        {
+            ViewBag.Countries = Enum.GetValues(typeof(Country))
+                .Cast<Country>()
+                .Select(c => new SelectListItem
+                {
+                    Text = c.ToString(),
+                    Value = c.ToString()
+                }).ToList();
+
+            return View(new FolderCreateDto());
+        }
+
+        /* public IActionResult Create()
         {
             ViewBag.Countries = Enum.GetValues(typeof(Country))
                                 .Cast<Country>()
@@ -49,9 +70,10 @@ namespace LiveMap.Web.Controllers
                                 }).ToList();
 
             return View(new FolderCreateViewModel());
-        }
+        }*/
 
-        [HttpPost]
+
+        /*[HttpPost]
         public async Task<IActionResult> Create(FolderCreateViewModel model)
         {
             if (!ModelState.IsValid)
@@ -85,8 +107,32 @@ namespace LiveMap.Web.Controllers
             await context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
+        }*/
+
+        [HttpPost]
+        public async Task<IActionResult> Create(FolderCreateDto model)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Countries = Enum.GetValues(typeof(Country))
+                    .Cast<Country>()
+                    .Select(c => new SelectListItem
+                    {
+                        Text = c.ToString(),
+                        Value = c.ToString()
+                    }).ToList();
+
+                return View(model);
+            }
+
+            var userId = Guid.Parse(userManager.GetUserId(User));
+
+            await folderService.CreateAsync(model, userId);
+
+            return RedirectToAction(nameof(Index));
         }
 
+        /*
         public async Task<IActionResult> Details(Guid id)
         {
             var folder = await context.Folders
@@ -97,18 +143,42 @@ namespace LiveMap.Web.Controllers
 
             return View(folder);
         }
+        */
+        /*
+       public async Task<IActionResult> Details(Guid id)
+       {
+           var folder = await folderService.GetByIdAsync(id);
+           if (folder == null)
+           {
+               return NotFound();
+           }
 
-        // View All Pictures
-        public async Task<IActionResult> Pictures(Guid folderId)
+           return View(folder);
+       }
+
+       // View All Pictures
+       public async Task<IActionResult> Pictures(Guid folderId)
+       {
+           var pictures = await context.Pictures
+               .Where(p => p.FolderId == folderId)
+               .ToListAsync();
+
+           ViewBag.FolderId = folderId;
+           return View(pictures);
+       }
+       */
+        public async Task<IActionResult> Details(Guid id)
         {
-            var pictures = await context.Pictures
-                .Where(p => p.FolderId == folderId)
-                .ToListAsync();
+            var folder = await folderService.GetByIdAsync(id);
+            if (folder == null)
+            {
+                return NotFound();
+            }
 
-            ViewBag.FolderId = folderId;
-            return View(pictures);
+            return View(folder);
         }
 
+        /*
         // Upload picture (GET)
         public IActionResult Upload(Guid folderId)
         {
@@ -158,16 +228,7 @@ namespace LiveMap.Web.Controllers
             return RedirectToAction("Pictures", new { folderId });
         }
 
-        /* public async Task<IActionResult> Delete(Guid id)
-         {
-             var folder = await context.Folders.FindAsync(id);
-
-             context.Folders.Remove(folder);
-
-             await context.SaveChangesAsync();
-
-             return RedirectToAction(nameof(Index));
-         }*/
+        
 
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -201,5 +262,55 @@ namespace LiveMap.Web.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+    }
+        */
+
+        public async Task<IActionResult> Pictures(Guid folderId)
+        {
+            var pictures = await folderService.GetPicturesAsync(folderId);
+            ViewBag.FolderId = folderId;
+            return View(pictures);
+        }
+
+        public IActionResult Upload(Guid folderId)
+        {
+            ViewBag.FolderId = folderId;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Upload(Guid folderId, IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                ModelState.AddModelError(string.Empty, "Please select a file.");
+                ViewBag.FolderId = folderId;
+                return View();
+            }
+
+            await folderService.UploadPictureAsync(folderId, file);
+            return RedirectToAction(nameof(Pictures), new { folderId });
+        }
+
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var folder = await folderService.GetByIdAsync(id);
+            if (folder == null)
+            {
+                return NotFound();
+            }
+
+            return View(folder);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(Guid id)
+        {
+            await folderService.DeleteAsync(id);
+            return RedirectToAction(nameof(Index));
+        }
+
     }
 }

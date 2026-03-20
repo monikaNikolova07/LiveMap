@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\LiveMap.Core\LiveMap.Core.csproj" />
     <ProjectReference Include="..\LiveMap.Data\LiveMap.Data.csproj" />
   </ItemGroup>
 

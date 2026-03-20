@@ -1,6 +1,7 @@
+using LiveMap.Core.Contracts;
+using LiveMap.Core.Services;
 using LiveMap.Data;
 using LiveMap.Data.Models;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace LiveMap.Web
@@ -20,6 +21,8 @@ namespace LiveMap.Web
             builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = false)
                 .AddEntityFrameworkStores<LiveMapDbContext>();
             builder.Services.AddControllersWithViews();
+
+            builder.Services.AddScoped<IFolderService, FolderService>();
 
             var app = builder.Build();
 
