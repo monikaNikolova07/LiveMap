@@ -10,7 +10,7 @@ namespace LiveMap.Core.Contracts
 
         Task CreateAsync(FolderCreateDto model, Guid userId);
 
-        Task<Folder?> GetByIdAsync(Guid id);
+        Task<LiveMap.Data.Models.Folder?> GetByIdAsync(Guid id);
 
         Task<IEnumerable<Picture>> GetPicturesAsync(Guid folderId);
 

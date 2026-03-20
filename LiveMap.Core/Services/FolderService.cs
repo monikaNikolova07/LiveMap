@@ -1,4 +1,6 @@
-﻿using LiveMap.Core.Contracts;
+﻿using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
+using LiveMap.Core.Contracts;
 using LiveMap.Core.DTOs.Folders;
 using LiveMap.Data;
 using LiveMap.Data.Models;
@@ -10,10 +12,12 @@ namespace LiveMap.Core.Services
     public class FolderService : IFolderService
     {
         private readonly LiveMapDbContext context;
+        private readonly Cloudinary cloudinary;
 
-        public FolderService(LiveMapDbContext _context)
+        public FolderService(LiveMapDbContext _context, Cloudinary _cloudinary)
         {
             context = _context;
+            cloudinary = _cloudinary;
         }
 
         public async Task<IEnumerable<FolderIndexDto>> GetAllAsync()
@@ -44,7 +48,7 @@ namespace LiveMap.Core.Services
                 throw new InvalidOperationException("Profile not found for the current user.");
             }
 
-            var folder = new Folder
+            var folder = new LiveMap.Data.Models.Folder
             {
                 Id = Guid.NewGuid(),
                 Name = model.Name,
@@ -56,7 +60,7 @@ namespace LiveMap.Core.Services
             await context.SaveChangesAsync();
         }
 
-        public async Task<Folder?> GetByIdAsync(Guid id)
+        public async Task<LiveMap.Data.Models.Folder?> GetByIdAsync(Guid id)
         {
             return await context.Folders
                 .Include(f => f.Pictures)
@@ -79,26 +83,40 @@ namespace LiveMap.Core.Services
                 throw new InvalidOperationException("Folder not found.");
             }
 
-            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-
-            if (!Directory.Exists(uploadsFolder))
+            if (file == null || file.Length == 0)
             {
-                Directory.CreateDirectory(uploadsFolder);
+                throw new InvalidOperationException("No file selected.");
             }
 
-            var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
-            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-            await using (var stream = new FileStream(filePath, FileMode.Create))
+            if (!file.ContentType.StartsWith("image/"))
             {
-                await file.CopyToAsync(stream);
+                throw new InvalidOperationException("Only image files are allowed.");
+            }
+
+            await using var stream = file.OpenReadStream();
+
+            var uploadParams = new ImageUploadParams
+            {
+                File = new FileDescription(file.FileName, stream),
+                Folder = $"livemap/{folderId}",
+                PublicId = Guid.NewGuid().ToString(),
+                UseFilename = true,
+                UniqueFilename = true,
+                Overwrite = false
+            };
+
+            var uploadResult = await cloudinary.UploadAsync(uploadParams);
+
+            if (uploadResult.Error != null)
+            {
+                throw new InvalidOperationException(uploadResult.Error.Message);
             }
 
             var picture = new Picture
             {
                 Id = Guid.NewGuid(),
                 FolderId = folderId,
-                URL = "/uploads/" + uniqueFileName,
+                URL = uploadResult.SecureUrl?.ToString() ?? string.Empty,
                 Acssesability = Acssesability.Public
             };
 

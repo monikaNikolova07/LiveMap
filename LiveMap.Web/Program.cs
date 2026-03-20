@@ -3,6 +3,8 @@ using LiveMap.Core.Services;
 using LiveMap.Data;
 using LiveMap.Data.Models;
 using Microsoft.EntityFrameworkCore;
+using CloudinaryDotNet;
+using LiveMap.Core.Utilities;
 
 namespace LiveMap.Web
 {
@@ -23,6 +25,24 @@ namespace LiveMap.Web
             builder.Services.AddControllersWithViews();
 
             builder.Services.AddScoped<IFolderService, FolderService>();
+            builder.Services.AddScoped<IImageService, ImageService>();
+
+            builder.Services.Configure<CloudinarySettings>(
+            builder.Configuration.GetSection("CloudinarySettings"));
+
+            var cloudinarySettings = builder.Configuration
+                .GetSection("CloudinarySettings")
+                .Get<CloudinarySettings>() ?? throw new InvalidOperationException("Cloudinary settings are missing.");
+
+            var account = new Account(
+                cloudinarySettings.CloudName,
+                cloudinarySettings.ApiKey,
+                cloudinarySettings.ApiSecret);
+
+            var cloudinary = new Cloudinary(account);
+            cloudinary.Api.Secure = true;
+
+            builder.Services.AddSingleton(cloudinary);
 
             var app = builder.Build();
 

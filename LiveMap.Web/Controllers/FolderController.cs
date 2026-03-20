@@ -16,11 +16,13 @@ namespace LiveMap.Web.Controllers
     {
         private readonly IFolderService folderService;
         private readonly UserManager<User> userManager;
+        private readonly IImageService imageService;
 
-        public FolderController(IFolderService _folderService, UserManager<User> _userManager)
+        public FolderController(IFolderService _folderService, UserManager<User> _userManager, IImageService _imageService)
         {
             this.folderService = _folderService;
             this.userManager = _userManager;
+            this.imageService = _imageService;
         }
 
         /*public async Task<IActionResult> Index()
@@ -289,8 +291,17 @@ namespace LiveMap.Web.Controllers
                 return View();
             }
 
-            await folderService.UploadPictureAsync(folderId, file);
-            return RedirectToAction(nameof(Pictures), new { folderId });
+            try
+            {
+                await imageService.UploadImageAsync(file, file.FileName, "images");
+                return RedirectToAction(nameof(Pictures), new { folderId });
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                ViewBag.FolderId = folderId;
+                return View();
+            }
         }
 
         public async Task<IActionResult> Delete(Guid id)
