@@ -13,7 +13,5 @@ namespace LiveMap.Core.DTOs.Profiles
         public string Bio { get; set; } = null!;
 
         public string ProfilePicture { get; set; } = null!;
-
-        public int Acssesability { get; set; }
     }
 }

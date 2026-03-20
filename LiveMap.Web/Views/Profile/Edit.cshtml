@@ -2,8 +2,9 @@
 
 <h2>Edit Profile</h2>
 
-<form asp-action="Edit" method="post">
+<form asp-action="Edit" method="post" enctype="multipart/form-data">
     <input asp-for="Id" type="hidden" />
+    <input asp-for="ProfilePicture" type="hidden" />
 
     <div>
         <label asp-for="Bio"></label>
@@ -12,19 +13,8 @@
     </div>
 
     <div>
-        <label asp-for="ProfilePicture"></label>
-        <input asp-for="ProfilePicture" />
-        <span asp-validation-for="ProfilePicture"></span>
-    </div>
-
-    <div>
-        <label asp-for="Acssesability"></label>
-        <select asp-for="Acssesability">
-            <option value="0">Public</option>
-            <option value="1">Private</option>
-            <option value="2">FriendsOnly</option>
-        </select>
-        <span asp-validation-for="Acssesability"></span>
+        <label>Profile picture</label>
+        <input type="file" name="imageFile" accept="image/*" />
     </div>
 
     <button type="submit">Save</button>

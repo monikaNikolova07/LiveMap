@@ -59,8 +59,7 @@ namespace LiveMap.Core.Services
                 {
                     Id = p.Id,
                     Bio = p.Bio,
-                    ProfilePicture = p.ProfilePicture,
-                    Acssesability = (int)p.Acssesability
+                    ProfilePicture = p.ProfilePicture
                 })
                 .FirstOrDefaultAsync();
 
@@ -84,7 +83,6 @@ namespace LiveMap.Core.Services
 
             profile.Bio = dto.Bio;
             profile.ProfilePicture = dto.ProfilePicture;
-            profile.Acssesability = (Acssesability)dto.Acssesability;
 
             await context.SaveChangesAsync();
         }

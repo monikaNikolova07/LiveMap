@@ -11,10 +11,12 @@ namespace LiveMap.Web.Controllers
     public class ProfileController : Controller
     {
         private readonly IProfileService profileService;
+        private readonly IImageService imageService;
 
-        public ProfileController(IProfileService profileService)
+        public ProfileController(IProfileService profileService, IImageService imageService)
         {
             this.profileService = profileService;
+            this.imageService = imageService;
         }
 
         public async Task<IActionResult> Index()
@@ -69,7 +71,7 @@ namespace LiveMap.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(ProfileEditDto dto)
+        public async Task<IActionResult> Edit(ProfileEditDto dto, IFormFile? imageFile)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -81,6 +83,16 @@ namespace LiveMap.Web.Controllers
             if (!ModelState.IsValid)
             {
                 return View(dto);
+            }
+
+            if (imageFile != null && imageFile.Length > 0)
+            {
+                var imageResult = await imageService.UploadImageAsync(
+                    imageFile,
+                    Guid.NewGuid().ToString(),
+                    "profiles");
+
+                dto.ProfilePicture = imageResult.Url;
             }
 
             await profileService.EditProfileAsync(dto, userId);
