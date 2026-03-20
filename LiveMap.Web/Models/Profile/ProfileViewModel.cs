@@ -6,14 +6,13 @@ namespace LiveMap.Web.Models.Profile
     {
         public Guid Id { get; set; }
 
-        public string ProfilePicture { get; set; }
+        public string ProfilePicture { get; set; } = null!;
 
-        public string Bio { get; set; }
+        public string Bio { get; set; } = null!;
 
-        public Guid UserId { get; set; }
+        public string Username { get; set; } = null!;
 
-        public int FoldersCount { get; set; }
-
-        public Acssesability Acssesability { get; set; }
+        public ICollection<ProfileFolderViewModel> Folders { get; set; }
+            = new List<ProfileFolderViewModel>();
     }
 }

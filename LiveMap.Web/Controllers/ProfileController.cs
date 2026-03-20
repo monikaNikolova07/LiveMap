@@ -1,56 +1,91 @@
-﻿using LiveMap.Data;
+﻿using LiveMap.Core.Contracts;
+using LiveMap.Core.DTOs.Profiles;
 using LiveMap.Web.Models.Profile;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace LiveMap.Web.Controllers
 {
     [Authorize]
     public class ProfileController : Controller
     {
-        private readonly LiveMapDbContext context;
+        private readonly IProfileService profileService;
 
-        public ProfileController(LiveMapDbContext context)
+        public ProfileController(IProfileService profileService)
         {
-            this.context = context;
+            this.profileService = profileService;
         }
 
         public async Task<IActionResult> Index()
         {
-            var profiles = await context.Profiles
-                .Select(p => new ProfileViewModel
-                {
-                    Id = p.Id,
-                    ProfilePicture = p.ProfilePicture,
-                    Bio = p.Bio,
-                    UserId = p.UserId,
-                    FoldersCount = p.Folders.Count,
-                    Acssesability = p.Acssesability
-                })
-                .ToListAsync();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            return View(profiles);
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var profileDto = await profileService.GetProfileAsync(userId);
+
+            if (profileDto == null)
+            {
+                return NotFound();
+            }
+
+            var model = new ProfileViewModel
+            {
+                Id = profileDto.Id,
+                ProfilePicture = profileDto.ProfilePicture,
+                Bio = profileDto.Bio,
+                Username = profileDto.Username,
+                Folders = profileDto.Folders.Select(f => new ProfileFolderViewModel
+                {
+                    Id = f.Id,
+                    Name = f.Name
+                }).ToList()
+            };
+
+            return View(model);
         }
 
-        /* za VIew na Create /nqmam metod oshte/
-         * @model LiveMap.Web.Models.Profile.ProfileCreateViewModel
+        public async Task<IActionResult> Edit()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            <h2>Create Profile</h2>
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
 
-            <form asp-action="Create">
-              <div>
-              <label>Username</label>
-              <input asp-for="Username" />
-             </div>
+            var profileDto = await profileService.GetProfileForEditAsync(userId);
 
-             <div>
-                 <label>Bio</label>
-                 <textarea asp-for="Bio"></textarea>
-            </div>
+            if (profileDto == null)
+            {
+                return NotFound();
+            }
 
-             <button type="submit">Create</button>
-            </form>
-         */
+            return View(profileDto);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(ProfileEditDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(dto);
+            }
+
+            await profileService.EditProfileAsync(dto, userId);
+
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

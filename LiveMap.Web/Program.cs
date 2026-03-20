@@ -26,6 +26,7 @@ namespace LiveMap.Web
 
             builder.Services.AddScoped<IFolderService, FolderService>();
             builder.Services.AddScoped<IImageService, ImageService>();
+            builder.Services.AddScoped<IProfileService, ProfileService>();
 
             builder.Services.Configure<CloudinarySettings>(
             builder.Configuration.GetSection("CloudinarySettings"));

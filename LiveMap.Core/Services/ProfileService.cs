@@ -1,0 +1,92 @@
+﻿using LiveMap.Core.Contracts;
+using LiveMap.Core.DTOs.Profiles;
+using LiveMap.Data;
+using LiveMap.Data.Models;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LiveMap.Core.Services
+{
+    public class ProfileService : IProfileService
+    {
+        private readonly LiveMapDbContext context;
+
+        public ProfileService(LiveMapDbContext context)
+        {
+            this.context = context;
+        }
+
+        public async Task<ProfileIndexDto?> GetProfileAsync(string userId)
+        {
+            if (!Guid.TryParse(userId, out var userGuid))
+            {
+                return null;
+            }
+
+            var profile = await context.Profiles
+                .Where(p => p.UserId == userGuid)
+                .Select(p => new ProfileIndexDto
+                {
+                    Id = p.Id,
+                    ProfilePicture = p.ProfilePicture,
+                    Bio = p.Bio,
+                    Username = p.User.UserName,
+                    Folders = p.Folders.Select(f => new ProfileFolderDto
+                    {
+                        Id = f.Id,
+                        Name = f.Name
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            return profile;
+        }
+
+        public async Task<ProfileEditDto?> GetProfileForEditAsync(string userId)
+        {
+            if (!Guid.TryParse(userId, out var userGuid))
+            {
+                return null;
+            }
+
+            var profile = await context.Profiles
+                .Where(p => p.UserId == userGuid)
+                .Select(p => new ProfileEditDto
+                {
+                    Id = p.Id,
+                    Bio = p.Bio,
+                    ProfilePicture = p.ProfilePicture,
+                    Acssesability = (int)p.Acssesability
+                })
+                .FirstOrDefaultAsync();
+
+            return profile;
+        }
+
+        public async Task EditProfileAsync(ProfileEditDto dto, string userId)
+        {
+            if (!Guid.TryParse(userId, out var userGuid))
+            {
+                return;
+            }
+
+            var profile = await context.Profiles
+                .FirstOrDefaultAsync(p => p.UserId == userGuid);
+
+            if (profile == null)
+            {
+                return;
+            }
+
+            profile.Bio = dto.Bio;
+            profile.ProfilePicture = dto.ProfilePicture;
+            profile.Acssesability = (Acssesability)dto.Acssesability;
+
+            await context.SaveChangesAsync();
+        }
+    }
+}

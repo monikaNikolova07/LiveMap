@@ -2,6 +2,28 @@
 
 <h2>Profile</h2>
 
-<p>Name: @Model.UserId</p>
+<div>
+    <img src="@Model.ProfilePicture" alt="Profile picture" width="150" />
+</div>
+
+<p>Username: @Model.Username</p>
 
 <p>Bio: @Model.Bio</p>
+
+<a asp-action="Edit" class="btn btn-primary">Edit Profile</a>
+
+<h3>My folders</h3>
+
+@if (Model.Folders != null && Model.Folders.Any())
+{
+    <ul>
+        @foreach (var folder in Model.Folders)
+        {
+            <li>@folder.Name</li>
+        }
+    </ul>
+}
+else
+{
+    <p>You have no folders yet.</p>
+}

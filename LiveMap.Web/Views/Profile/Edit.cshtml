@@ -1,0 +1,31 @@
+﻿@model LiveMap.Core.DTOs.Profiles.ProfileEditDto
+
+<h2>Edit Profile</h2>
+
+<form asp-action="Edit" method="post">
+    <input asp-for="Id" type="hidden" />
+
+    <div>
+        <label asp-for="Bio"></label>
+        <textarea asp-for="Bio"></textarea>
+        <span asp-validation-for="Bio"></span>
+    </div>
+
+    <div>
+        <label asp-for="ProfilePicture"></label>
+        <input asp-for="ProfilePicture" />
+        <span asp-validation-for="ProfilePicture"></span>
+    </div>
+
+    <div>
+        <label asp-for="Acssesability"></label>
+        <select asp-for="Acssesability">
+            <option value="0">Public</option>
+            <option value="1">Private</option>
+            <option value="2">FriendsOnly</option>
+        </select>
+        <span asp-validation-for="Acssesability"></span>
+    </div>
+
+    <button type="submit">Save</button>
+</form>
