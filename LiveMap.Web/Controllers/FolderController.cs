@@ -1,13 +1,11 @@
 ﻿using LiveMap.Core.Contracts;
 using LiveMap.Core.DTOs.Folders;
-using LiveMap.Core.Services;
+using LiveMap.Data;
 using LiveMap.Data.Models;
-using LiveMap.Web.Models.Folder;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 
 namespace LiveMap.Web.Controllers
 {
@@ -17,12 +15,18 @@ namespace LiveMap.Web.Controllers
         private readonly IFolderService folderService;
         private readonly UserManager<User> userManager;
         private readonly IImageService imageService;
+        private readonly LiveMapDbContext context;
 
-        public FolderController(IFolderService _folderService, UserManager<User> _userManager, IImageService _imageService)
+        public FolderController(
+     IFolderService folderService,
+     UserManager<User> userManager,
+     IImageService imageService,
+     LiveMapDbContext context)
         {
-            this.folderService = _folderService;
-            this.userManager = _userManager;
-            this.imageService = _imageService;
+            this.folderService = folderService;
+            this.userManager = userManager;
+            this.imageService = imageService;
+            this.context = context;
         }
 
         /*public async Task<IActionResult> Index()
@@ -116,6 +120,13 @@ namespace LiveMap.Web.Controllers
         {
             if (!ModelState.IsValid)
             {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                ViewBag.Errors = errors;
+
                 ViewBag.Countries = Enum.GetValues(typeof(Country))
                     .Cast<Country>()
                     .Select(c => new SelectListItem
@@ -127,11 +138,24 @@ namespace LiveMap.Web.Controllers
                 return View(model);
             }
 
-            var userId = Guid.Parse(userManager.GetUserId(User));
+            var userIdString = userManager.GetUserId(User);
 
-            await folderService.CreateAsync(model, userId);
+            if (string.IsNullOrEmpty(userIdString))
+            {
+                return Content("UserId is null");
+            }
 
-            return RedirectToAction(nameof(Index));
+            var userId = Guid.Parse(userIdString);
+
+            try
+            {
+                await folderService.CreateAsync(model, userId);
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                return Content(ex.Message);
+            }
         }
 
         /*
@@ -293,7 +317,22 @@ namespace LiveMap.Web.Controllers
 
             try
             {
-                await imageService.UploadImageAsync(file, file.FileName, "images");
+                var imageResult = await imageService.UploadImageAsync(
+                    file,
+                    Guid.NewGuid().ToString(),
+                    "images");
+
+                var picture = new Picture
+                {
+                    Id = Guid.NewGuid(),
+                    URL = imageResult.Url,
+                    FolderId = folderId,
+                    Acssesability = Acssesability.Public
+                };
+
+                await context.Pictures.AddAsync(picture);
+                await context.SaveChangesAsync();
+
                 return RedirectToAction(nameof(Pictures), new { folderId });
             }
             catch (Exception ex)

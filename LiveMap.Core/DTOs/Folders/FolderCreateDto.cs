@@ -10,6 +10,5 @@ namespace LiveMap.Core.DTOs.Folders
     public class FolderCreateDto
     {
         public string Name { get; set; }
-        public Acssesability Acssesability { get; set; }
     }
 }

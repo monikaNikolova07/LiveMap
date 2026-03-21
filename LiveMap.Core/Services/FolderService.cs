@@ -53,7 +53,7 @@ namespace LiveMap.Core.Services
                 Id = Guid.NewGuid(),
                 Name = model.Name,
                 ProfileId = profile.Id,
-                Acssesability = model.Acssesability
+                Acssesability = LiveMap.Data.Models.Acssesability.Public
             };
 
             await context.Folders.AddAsync(folder);
