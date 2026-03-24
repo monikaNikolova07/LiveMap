@@ -3,6 +3,8 @@ using LiveMap.Core.DTOs.Profiles;
 using LiveMap.Web.Models.Profile;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using LiveMap.Data;
 using System.Security.Claims;
 
 namespace LiveMap.Web.Controllers
@@ -12,11 +14,13 @@ namespace LiveMap.Web.Controllers
     {
         private readonly IProfileService profileService;
         private readonly IImageService imageService;
+        private readonly LiveMapDbContext context;
 
-        public ProfileController(IProfileService profileService, IImageService imageService)
+        public ProfileController(IProfileService profileService, IImageService imageService, LiveMapDbContext context)
         {
             this.profileService = profileService;
             this.imageService = imageService;
+            this.context = context;
         }
 
         public async Task<IActionResult> Index()
@@ -49,6 +53,38 @@ namespace LiveMap.Web.Controllers
             };
 
             return View(model);
+        }
+
+
+        [AllowAnonymous]
+        public async Task<IActionResult> Details(Guid id)
+        {
+            var profile = await context.Profiles
+                .Where(p => p.Id == id && p.Acssesability == LiveMap.Data.Models.Acssesability.Public)
+                .Select(p => new ProfileViewModel
+                {
+                    Id = p.Id,
+                    ProfilePicture = p.ProfilePicture,
+                    Bio = p.Bio,
+                    Username = p.User.UserName,
+                    Folders = p.Folders
+                        .Where(f => f.Acssesability == LiveMap.Data.Models.Acssesability.Public)
+                        .Select(f => new ProfileFolderViewModel
+                        {
+                            Id = f.Id,
+                            Name = f.Name
+                        })
+                        .ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            if (profile == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.IsPublicProfile = true;
+            return View("Index", profile);
         }
 
         public async Task<IActionResult> Edit()

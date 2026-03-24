@@ -1,0 +1,52 @@
+@model LiveMap.Web.Models.Home.CountryGalleryViewModel
+@{
+    ViewData["Title"] = $"{Model.CountryName} gallery";
+}
+
+<section class="country-gallery-page">
+    <div class="country-gallery-hero">
+        <div>
+            <p class="section-eyebrow">Country gallery</p>
+            <h1 class="country-gallery-title"><span aria-hidden="true">@Model.CountryFlagEmoji</span> @Model.CountryName</h1>
+            <p class="country-gallery-subtitle">
+                Showing images that belong to public folders named @Model.CountryName.
+                Clicking a card opens the creator profile.
+            </p>
+        </div>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-primary">Back to home</a>
+    </div>
+
+    @if (Model.Images.Any())
+    {
+        <div class="country-gallery-grid">
+            @foreach (var image in Model.Images)
+            {
+                <a asp-controller="Profile"
+                   asp-action="Details"
+                   asp-route-id="@image.ProfileId"
+                   class="country-image-card text-decoration-none">
+                    <div class="country-image-frame">
+                        <img src="@image.ImageUrl" alt="@Model.CountryName" class="country-image-preview" />
+                    </div>
+                    <div class="country-image-body">
+                        <div class="country-image-meta-row">
+                            <img src="@(string.IsNullOrWhiteSpace(image.ProfilePicture) ? "/images/default.jpeg" : image.ProfilePicture)"
+                                 alt="@image.Username profile picture"
+                                 class="creator-avatar" />
+                            <div>
+                                <p class="creator-name">@image.Username</p>
+                                <p class="creator-folder">Folder: @image.FolderName</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state-card">
+            <p>No public images were found for folders named @Model.CountryName yet.</p>
+        </div>
+    }
+</section>

@@ -1,29 +1,62 @@
-﻿@model LiveMap.Web.Models.Profile.ProfileViewModel
+@model LiveMap.Web.Models.Profile.ProfileViewModel
+@{
+    var isPublicProfile = ViewBag.IsPublicProfile is bool value && value;
+    ViewData["Title"] = isPublicProfile ? $"{Model.Username} Profile" : "My Profile";
+}
 
-<h2>Profile</h2>
+<section class="profile-page">
+    <div class="profile-header-card">
+        <img src="@(string.IsNullOrWhiteSpace(Model.ProfilePicture) ? "/images/default.jpeg" : Model.ProfilePicture)"
+             alt="@Model.Username profile picture"
+             class="profile-avatar-large" />
 
-<div>
-    <img src="@Model.ProfilePicture" alt="Profile picture" width="150" />
-</div>
+        <div>
+            <p class="profile-eyebrow">@(isPublicProfile ? "Creator profile" : "Your profile")</p>
+            <h1 class="profile-title">@Model.Username</h1>
+            <p class="profile-bio">@(string.IsNullOrWhiteSpace(Model.Bio) ? "No bio added yet." : Model.Bio)</p>
 
-<p>Username: @Model.Username</p>
+            @if (!isPublicProfile)
+            {
+                <a asp-action="Edit" class="btn btn-primary">Edit Profile</a>
+            }
+        </div>
+    </div>
 
-<p>Bio: @Model.Bio</p>
+    <div class="profile-folders-section">
+        <div class="section-heading-row">
+            <div>
+                <p class="section-eyebrow">Folders</p>
+                <h2 class="section-title">@(isPublicProfile ? "Public folders" : "My folders")</h2>
+            </div>
+        </div>
 
-<a asp-action="Edit" class="btn btn-primary">Edit Profile</a>
-
-<h3>My folders</h3>
-
-@if (Model.Folders != null && Model.Folders.Any())
-{
-    <ul>
-        @foreach (var folder in Model.Folders)
+        @if (Model.Folders != null && Model.Folders.Any())
         {
-            <li>@folder.Name</li>
+            <div class="folder-shortcut-grid">
+                @foreach (var folder in Model.Folders)
+                {
+                    <a asp-controller="Folder"
+                       asp-action="Details"
+                       asp-route-id="@folder.Id"
+                       class="folder-shortcut-link"
+                       aria-label="Open @folder.Name folder">
+                        <span class="folder-shortcut-icon" aria-hidden="true">
+                            <svg viewBox="0 0 64 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M4 13.5C4 9.35786 7.35786 6 11.5 6H24L29 12H52.5C56.6421 12 60 15.3579 60 19.5V40.5C60 44.6421 56.6421 48 52.5 48H11.5C7.35786 48 4 44.6421 4 40.5V13.5Z" fill="#FFD86B" />
+                                <path d="M4 18C4 14.6863 6.68629 12 10 12H54C57.3137 12 60 14.6863 60 18V40C60 44.4183 56.4183 48 52 48H12C7.58172 48 4 44.4183 4 40V18Z" fill="#F4B942" />
+                                <path d="M11 19H53" stroke="#D89A19" stroke-width="2.5" stroke-linecap="round" />
+                            </svg>
+                        </span>
+                        <span class="folder-shortcut-name">@folder.Name</span>
+                    </a>
+                }
+            </div>
         }
-    </ul>
-}
-else
-{
-    <p>You have no folders yet.</p>
-}
+        else
+        {
+            <div class="empty-state-card">
+                <p>@(isPublicProfile ? "This creator does not have any public folders yet." : "You have no folders yet.")</p>
+            </div>
+        }
+    </div>
+</section>
