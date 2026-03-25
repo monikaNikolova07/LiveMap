@@ -1,6 +1,6 @@
 @model LiveMap.Web.Models.Profile.ProfileViewModel
 @{
-    var isPublicProfile = ViewBag.IsPublicProfile is bool value && value;
+    var isPublicProfile = !Model.IsOwnProfile;
     ViewData["Title"] = isPublicProfile ? $"{Model.Username} Profile" : "My Profile";
 }
 
@@ -10,46 +10,40 @@
              alt="@Model.Username profile picture"
              class="profile-avatar-large" />
 
-        <div class="profile-header-content">
+        <div>
             <p class="profile-eyebrow">@(isPublicProfile ? "Creator profile" : "Your profile")</p>
             <h1 class="profile-title">@Model.Username</h1>
             <p class="profile-bio">@(string.IsNullOrWhiteSpace(Model.Bio) ? "No bio added yet." : Model.Bio)</p>
 
-            @if (!isPublicProfile)
+            <div class="d-flex flex-wrap gap-3 mb-3">
+                <span class="badge text-bg-light p-2">Followers: @Model.FollowersCount</span>
+                <span class="badge text-bg-light p-2">Following: @Model.FollowingCount</span>
+                <span class="badge text-bg-light p-2">Friends: @Model.FriendsCount</span>
+            </div>
+
+            @if (Model.IsOwnProfile)
             {
-                <div class="profile-action-row">
-                    <a asp-action="Edit" class="btn btn-primary profile-main-button">Edit Profile</a>
-                </div>
+                <a asp-action="Edit" class="btn btn-primary">Edit Profile</a>
+            }
+            else if (User.Identity?.IsAuthenticated ?? false)
+            {
+                if (Model.IsFollowedByCurrentUser)
+                {
+                    <form asp-action="Unfollow" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-danger">Unfollow</button>
+                    </form>
+                }
+                else
+                {
+                    <form asp-action="Follow" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-primary">Follow</button>
+                    </form>
+                }
             }
         </div>
     </div>
-
-    @if (!isPublicProfile)
-    {
-        <div class="profile-create-card">
-            <div>
-                <p class="section-eyebrow">Quick action</p>
-                <h2 class="section-title">Create a folder from your profile</h2>
-                <p class="profile-create-copy">Choose a country and add a new folder without leaving your profile page.</p>
-            </div>
-
-            <form asp-controller="Folder" asp-action="Create" method="post" class="profile-create-form">
-                <input type="hidden" name="returnUrl" value="@Url.Action("Index", "Profile")" />
-                <div class="profile-form-field">
-                    <label for="Name" class="profile-form-label">Country / Folder name</label>
-                    <select id="Name" name="Name" class="form-select profile-form-select" required>
-                        <option value="">-- Select country --</option>
-                        @foreach (var country in ViewBag.Countries)
-                        {
-                            <option value="@country.Value">@country.Text</option>
-                        }
-                    </select>
-                </div>
-
-                <button type="submit" class="btn btn-primary profile-main-button">Create Folder</button>
-            </form>
-        </div>
-    }
 
     <div class="profile-folders-section">
         <div class="section-heading-row">

@@ -117,7 +117,8 @@ namespace LiveMap.Core.Services
                 Id = Guid.NewGuid(),
                 FolderId = folderId,
                 URL = uploadResult.SecureUrl?.ToString() ?? string.Empty,
-                Acssesability = Acssesability.Public
+                Acssesability = Acssesability.Public,
+                CreatedOn = DateTime.UtcNow
             };
 
             await context.Pictures.AddAsync(picture);

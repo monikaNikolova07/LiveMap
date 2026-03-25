@@ -17,6 +17,10 @@ namespace LiveMap.Data.Configurations
             builder.Property(p => p.Acssesability)
                 .IsRequired();
 
+            builder.Property(p => p.CreatedOn)
+                .IsRequired()
+                .HasDefaultValueSql("GETUTCDATE()");
+
             builder.HasOne(p => p.Folder)
                 .WithMany(f => f.Pictures)
                 .HasForeignKey(p => p.FolderId)

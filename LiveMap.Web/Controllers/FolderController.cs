@@ -116,7 +116,7 @@ namespace LiveMap.Web.Controllers
         }*/
 
         [HttpPost]
-        public async Task<IActionResult> Create(FolderCreateDto model, string? returnUrl)
+        public async Task<IActionResult> Create(FolderCreateDto model)
         {
             if (!ModelState.IsValid)
             {
@@ -150,12 +150,6 @@ namespace LiveMap.Web.Controllers
             try
             {
                 await folderService.CreateAsync(model, userId);
-
-                if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
-                {
-                    return Redirect(returnUrl);
-                }
-
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -333,13 +327,14 @@ namespace LiveMap.Web.Controllers
                     Id = Guid.NewGuid(),
                     URL = imageResult.Url,
                     FolderId = folderId,
-                    Acssesability = Acssesability.Public
+                    Acssesability = Acssesability.Public,
+                    CreatedOn = DateTime.UtcNow
                 };
 
                 await context.Pictures.AddAsync(picture);
                 await context.SaveChangesAsync();
 
-                return RedirectToAction(nameof(Pictures), new { folderId });
+                return RedirectToAction(nameof(Details), new { id = folderId });
             }
             catch (Exception ex)
             {

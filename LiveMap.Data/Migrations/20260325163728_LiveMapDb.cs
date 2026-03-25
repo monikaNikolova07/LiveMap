@@ -183,7 +183,8 @@ namespace LiveMap.Data.Migrations
                 columns: table => new
                 {
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    FolowingId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    FolowingId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
                 },
                 constraints: table =>
                 {
@@ -248,7 +249,8 @@ namespace LiveMap.Data.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     URL = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     FolderId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Acssesability = table.Column<int>(type: "int", nullable: false)
+                    Acssesability = table.Column<int>(type: "int", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
                 },
                 constraints: table =>
                 {

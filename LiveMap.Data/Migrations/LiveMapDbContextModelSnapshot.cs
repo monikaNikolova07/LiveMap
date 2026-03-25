@@ -70,6 +70,11 @@ namespace LiveMap.Data.Migrations
                     b.Property<int>("Acssesability")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("CreatedOn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
                     b.Property<Guid>("FolderId")
                         .HasColumnType("uniqueidentifier");
 
@@ -192,6 +197,11 @@ namespace LiveMap.Data.Migrations
 
                     b.Property<Guid>("FolowingId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.HasKey("UserId", "FolowingId");
 

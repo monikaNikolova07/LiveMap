@@ -39,6 +39,34 @@ namespace LiveMap.Web.Controllers
             return View(model);
         }
 
+
+        [HttpGet]
+        public async Task<IActionResult> Explore()
+        {
+            var model = new ExploreFeedViewModel
+            {
+                Pictures = await _context.Pictures
+                    .Where(p => p.Acssesability == Acssesability.Public)
+                    .Where(p => p.Folder.Acssesability == Acssesability.Public)
+                    .Where(p => p.Folder.Profile.Acssesability == Acssesability.Public)
+                    .OrderByDescending(p => p.CreatedOn)
+                    .Take(24)
+                    .Select(p => new ExplorePictureViewModel
+                    {
+                        PictureId = p.Id,
+                        ImageUrl = p.URL,
+                        ProfileId = p.Folder.Profile.Id,
+                        Username = p.Folder.Profile.User.UserName ?? "Unknown creator",
+                        ProfilePicture = p.Folder.Profile.ProfilePicture ?? string.Empty,
+                        FolderName = p.Folder.Name,
+                        CreatedOn = p.CreatedOn
+                    })
+                    .ToListAsync()
+            };
+
+            return View(model);
+        }
+
         [HttpGet]
         public async Task<IActionResult> Country(string country)
         {

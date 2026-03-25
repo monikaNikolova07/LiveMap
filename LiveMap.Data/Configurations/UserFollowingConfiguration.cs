@@ -10,6 +10,10 @@ namespace LiveMap.Data.Configurations
         {
             builder.HasKey(uf => new { uf.UserId, uf.FolowingId });
 
+            builder.Property(uf => uf.CreatedOn)
+                .IsRequired()
+                .HasDefaultValueSql("GETUTCDATE()");
+
             builder.HasOne(uf => uf.User)
                 .WithMany(u => u.Followings)
                 .HasForeignKey(uf => uf.UserId)

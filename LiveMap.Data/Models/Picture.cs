@@ -16,5 +16,7 @@ namespace LiveMap.Data.Models
         public Guid FolderId { get; set; }
 
         public Acssesability Acssesability { get; set; }
+
+        public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
     }
 }

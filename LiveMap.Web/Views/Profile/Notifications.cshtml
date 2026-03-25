@@ -1,0 +1,35 @@
+@model LiveMap.Web.Models.Profile.NotificationsViewModel
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+<section class="mb-4">
+    <p class="section-eyebrow">Notifications</p>
+    <h1 class="section-title">New followers</h1>
+    <p class="text-muted">This feed shows the most recent people who followed you.</p>
+</section>
+
+@if (Model.Followers.Any())
+{
+    <div class="list-group shadow-sm">
+        @foreach (var item in Model.Followers)
+        {
+            <a asp-action="Details" asp-route-id="@item.ProfileId" class="list-group-item list-group-item-action">
+                <div class="d-flex align-items-center gap-3">
+                    <img src="@(string.IsNullOrWhiteSpace(item.ProfilePicture) ? "/images/default.jpeg" : item.ProfilePicture)"
+                         alt="@item.Username avatar"
+                         class="rounded-circle"
+                         style="width: 56px; height: 56px; object-fit: cover;" />
+                    <div>
+                        <div><strong>@item.Username</strong> started following you.</div>
+                        <div class="small text-muted">@item.CreatedOn.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</div>
+                    </div>
+                </div>
+            </a>
+        }
+    </div>
+}
+else
+{
+    <div class="alert alert-info">You do not have any follower notifications yet.</div>
+}

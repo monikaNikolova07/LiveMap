@@ -15,5 +15,7 @@ namespace LiveMap.Data.Models
         public User Following { get; set; } = null!;
 
         public Guid FolowingId { get; set; }
+
+        public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
     }
 }

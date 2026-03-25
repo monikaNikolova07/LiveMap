@@ -1,4 +1,4 @@
-﻿@using LiveMap.Data.Models
+@using LiveMap.Data.Models
 @model Folder
 
 <h2>@Model.Name</h2>
@@ -6,9 +6,6 @@
 <p>Accessibility: @Model.Acssesability</p>
 
 <div class="d-flex gap-2 mb-3">
-    <a asp-action="Pictures" asp-route-folderId="@Model.Id" class="btn btn-primary">
-        View All Pictures
-    </a>
     <a asp-action="Upload" asp-route-folderId="@Model.Id" class="btn btn-success">
         Upload Pictures
     </a>
