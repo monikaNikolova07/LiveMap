@@ -1,0 +1,183 @@
+@model LiveMap.Web.Models.Admin.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin Panel";
+}
+
+<section class="admin-shell">
+    <header class="admin-topbar">
+        <div>
+            <p class="admin-kicker">Administration</p>
+            <h1 class="admin-title">Admin panel</h1>
+            <p class="admin-subtitle">A cleaner overview for profiles, folders and photos.</p>
+        </div>
+
+        <div class="admin-topbar-stats">
+            <div class="admin-mini-stat">
+                <span class="admin-mini-stat-value">@Model.Profiles.Count</span>
+                <span class="admin-mini-stat-label">Profiles</span>
+            </div>
+            <div class="admin-mini-stat">
+                <span class="admin-mini-stat-value">@Model.Folders.Count</span>
+                <span class="admin-mini-stat-label">Folders</span>
+            </div>
+            <div class="admin-mini-stat">
+                <span class="admin-mini-stat-value">@Model.Photos.Count</span>
+                <span class="admin-mini-stat-label">Photos</span>
+            </div>
+        </div>
+    </header>
+
+    @if (TempData["AdminSuccess"] is string successMessage)
+    {
+        <div class="alert alert-success admin-alert">@successMessage</div>
+    }
+
+    @if (TempData["AdminError"] is string errorMessage)
+    {
+        <div class="alert alert-danger admin-alert">@errorMessage</div>
+    }
+
+    <nav class="admin-section-nav">
+        <a href="#profiles" class="admin-nav-chip">Profiles</a>
+        <a href="#folders" class="admin-nav-chip">Folders</a>
+        <a href="#photos" class="admin-nav-chip">Photos</a>
+    </nav>
+
+    <div class="admin-layout-grid">
+        <section id="profiles" class="admin-panel admin-panel-wide">
+            <div class="admin-panel-head">
+                <div>
+                    <p class="admin-panel-kicker">Profiles</p>
+                    <h2>Users and profile pictures</h2>
+                </div>
+                <span class="admin-count-pill">@Model.Profiles.Count items</span>
+            </div>
+
+            @if (Model.Profiles.Any())
+            {
+                <div class="admin-list admin-list-scroll">
+                    @foreach (var profile in Model.Profiles)
+                    {
+                        <article class="admin-list-row">
+                            <div class="admin-primary-cell">
+                                <img src="@(string.IsNullOrWhiteSpace(profile.ProfilePicture) ? "/images/default.jpeg" : profile.ProfilePicture)"
+                                     alt="@profile.Username profile picture"
+                                     class="admin-avatar" />
+                                <div class="admin-primary-meta">
+                                    <div class="admin-row-title">@profile.Username</div>
+                                    <div class="admin-row-subtitle">@(string.IsNullOrWhiteSpace(profile.Email) ? "No email" : profile.Email)</div>
+                                    <div class="admin-row-note">Folders: @profile.FoldersCount</div>
+                                </div>
+                            </div>
+
+                            <div class="admin-row-side">
+                                <div class="admin-row-bio">@(!string.IsNullOrWhiteSpace(profile.Bio) ? profile.Bio : "No bio")</div>
+                                <div class="admin-actions-stack">
+                                    <a asp-controller="Profile" asp-action="Details" asp-route-id="@profile.Id" class="btn btn-sm btn-outline-secondary">Open</a>
+                                    <form asp-action="DeleteProfilePicture" method="post" class="admin-inline-form" onsubmit="return confirm('Delete this profile picture?');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@profile.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-warning">Delete picture</button>
+                                    </form>
+                                    <form asp-action="DeleteProfile" method="post" class="admin-inline-form" onsubmit="return confirm('Delete this profile and all its folders and photos?');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@profile.Id" />
+                                        <button type="submit" class="btn btn-sm btn-danger">Delete profile</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="admin-empty">No profiles found.</div>
+            }
+        </section>
+
+        <section id="folders" class="admin-panel">
+            <div class="admin-panel-head">
+                <div>
+                    <p class="admin-panel-kicker">Folders</p>
+                    <h2>Folder management</h2>
+                </div>
+                <span class="admin-count-pill">@Model.Folders.Count items</span>
+            </div>
+
+            @if (Model.Folders.Any())
+            {
+                <div class="admin-list admin-list-scroll admin-list-compact">
+                    @foreach (var folder in Model.Folders)
+                    {
+                        <article class="admin-list-row admin-list-row-compact">
+                            <div class="admin-folder-cell">
+                                <div class="admin-folder-icon">📁</div>
+                                <div>
+                                    <div class="admin-row-title">@folder.Name</div>
+                                    <div class="admin-row-subtitle">by @folder.Username</div>
+                                </div>
+                            </div>
+
+                            <div class="admin-folder-side">
+                                <span class="admin-count-pill admin-count-pill-soft">@folder.PicturesCount photos</span>
+                                <div class="admin-actions-stack admin-actions-inline">
+                                    <a asp-controller="Folder" asp-action="Details" asp-route-id="@folder.Id" class="btn btn-sm btn-outline-secondary">Open</a>
+                                    <form asp-action="DeleteFolder" method="post" class="admin-inline-form" onsubmit="return confirm('Delete this folder and all photos inside it?');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@folder.Id" />
+                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="admin-empty">No folders found.</div>
+            }
+        </section>
+
+        <section id="photos" class="admin-panel admin-panel-full">
+            <div class="admin-panel-head">
+                <div>
+                    <p class="admin-panel-kicker">Photos</p>
+                    <h2>Compact photo review</h2>
+                </div>
+                <span class="admin-count-pill">@Model.Photos.Count items</span>
+            </div>
+
+            @if (Model.Photos.Any())
+            {
+                <div class="admin-photo-grid-compact">
+                    @foreach (var photo in Model.Photos)
+                    {
+                        <article class="admin-photo-tile">
+                            <a asp-controller="Folder" asp-action="Details" asp-route-id="@photo.FolderId" class="admin-photo-thumb-link">
+                                <img src="@photo.Url" alt="@photo.FolderName photo" class="admin-photo-thumb" />
+                            </a>
+                            <div class="admin-photo-meta">
+                                <div class="admin-photo-owner">@photo.Username</div>
+                                <div class="admin-photo-folder">@photo.FolderName</div>
+                            </div>
+                            <div class="admin-photo-actions">
+                                <a asp-controller="Profile" asp-action="Details" asp-route-id="@photo.ProfileId" class="btn btn-sm btn-outline-secondary">Profile</a>
+                                <form asp-action="DeletePhoto" method="post" class="admin-inline-form" onsubmit="return confirm('Delete this photo?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@photo.Id" />
+                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                </form>
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="admin-empty">No photos found.</div>
+            }
+        </section>
+    </div>
+</section>
