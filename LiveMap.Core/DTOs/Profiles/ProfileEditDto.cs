@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 namespace LiveMap.Core.DTOs.Profiles
 {
@@ -10,8 +6,13 @@ namespace LiveMap.Core.DTOs.Profiles
     {
         public Guid Id { get; set; }
 
-        public string Bio { get; set; } = null!;
+        [Required]
+        [StringLength(30, MinimumLength = 3)]
+        public string Username { get; set; } = string.Empty;
 
-        public string ProfilePicture { get; set; } = null!;
+        [StringLength(500)]
+        public string Bio { get; set; } = string.Empty;
+
+        public string ProfilePicture { get; set; } = string.Empty;
     }
 }

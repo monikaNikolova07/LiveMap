@@ -116,7 +116,7 @@ namespace LiveMap.Web.Controllers
         }*/
 
         [HttpPost]
-        public async Task<IActionResult> Create(FolderCreateDto model)
+        public async Task<IActionResult> Create(FolderCreateDto model, string? returnUrl)
         {
             if (!ModelState.IsValid)
             {
@@ -150,6 +150,12 @@ namespace LiveMap.Web.Controllers
             try
             {
                 await folderService.CreateAsync(model, userId);
+
+                if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+                {
+                    return Redirect(returnUrl);
+                }
+
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)

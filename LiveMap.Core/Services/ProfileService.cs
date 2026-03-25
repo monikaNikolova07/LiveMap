@@ -1,13 +1,7 @@
-﻿using LiveMap.Core.Contracts;
+using LiveMap.Core.Contracts;
 using LiveMap.Core.DTOs.Profiles;
 using LiveMap.Data;
-using LiveMap.Data.Models;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LiveMap.Core.Services
 {
@@ -58,8 +52,9 @@ namespace LiveMap.Core.Services
                 .Select(p => new ProfileEditDto
                 {
                     Id = p.Id,
-                    Bio = p.Bio,
-                    ProfilePicture = p.ProfilePicture
+                    Username = p.User.UserName ?? string.Empty,
+                    Bio = p.Bio ?? string.Empty,
+                    ProfilePicture = p.ProfilePicture ?? string.Empty
                 })
                 .FirstOrDefaultAsync();
 
@@ -74,6 +69,7 @@ namespace LiveMap.Core.Services
             }
 
             var profile = await context.Profiles
+                .Include(p => p.User)
                 .FirstOrDefaultAsync(p => p.UserId == userGuid);
 
             if (profile == null)
@@ -83,6 +79,12 @@ namespace LiveMap.Core.Services
 
             profile.Bio = dto.Bio;
             profile.ProfilePicture = dto.ProfilePicture;
+
+            if (profile.User != null)
+            {
+                profile.User.UserName = dto.Username;
+                profile.User.NormalizedUserName = dto.Username.ToUpperInvariant();
+            }
 
             await context.SaveChangesAsync();
         }

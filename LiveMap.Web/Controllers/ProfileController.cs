@@ -1,10 +1,13 @@
-﻿using LiveMap.Core.Contracts;
+using LiveMap.Core.Contracts;
+using LiveMap.Core.DTOs.Folders;
 using LiveMap.Core.DTOs.Profiles;
 using LiveMap.Web.Models.Profile;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using LiveMap.Data;
+using LiveMap.Data.Models;
 using System.Security.Claims;
 
 namespace LiveMap.Web.Controllers
@@ -39,6 +42,14 @@ namespace LiveMap.Web.Controllers
                 return NotFound();
             }
 
+            ViewBag.Countries = Enum.GetValues(typeof(Country))
+                .Cast<Country>()
+                .Select(c => new SelectListItem
+                {
+                    Text = c.ToString(),
+                    Value = c.ToString()
+                }).ToList();
+
             var model = new ProfileViewModel
             {
                 Id = profileDto.Id,
@@ -54,7 +65,6 @@ namespace LiveMap.Web.Controllers
 
             return View(model);
         }
-
 
         [AllowAnonymous]
         public async Task<IActionResult> Details(Guid id)
@@ -114,6 +124,15 @@ namespace LiveMap.Web.Controllers
             if (userId == null)
             {
                 return Unauthorized();
+            }
+
+            dto.Username = (dto.Username ?? string.Empty).Trim();
+
+            if (await context.Users.AnyAsync(u => u.UserName != null &&
+                                                  u.Id.ToString() != userId &&
+                                                  u.UserName.ToLower() == dto.Username.ToLower()))
+            {
+                ModelState.AddModelError(nameof(dto.Username), "This username is already taken.");
             }
 
             if (!ModelState.IsValid)

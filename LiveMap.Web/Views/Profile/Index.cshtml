@@ -10,17 +10,46 @@
              alt="@Model.Username profile picture"
              class="profile-avatar-large" />
 
-        <div>
+        <div class="profile-header-content">
             <p class="profile-eyebrow">@(isPublicProfile ? "Creator profile" : "Your profile")</p>
             <h1 class="profile-title">@Model.Username</h1>
             <p class="profile-bio">@(string.IsNullOrWhiteSpace(Model.Bio) ? "No bio added yet." : Model.Bio)</p>
 
             @if (!isPublicProfile)
             {
-                <a asp-action="Edit" class="btn btn-primary">Edit Profile</a>
+                <div class="profile-action-row">
+                    <a asp-action="Edit" class="btn btn-primary profile-main-button">Edit Profile</a>
+                </div>
             }
         </div>
     </div>
+
+    @if (!isPublicProfile)
+    {
+        <div class="profile-create-card">
+            <div>
+                <p class="section-eyebrow">Quick action</p>
+                <h2 class="section-title">Create a folder from your profile</h2>
+                <p class="profile-create-copy">Choose a country and add a new folder without leaving your profile page.</p>
+            </div>
+
+            <form asp-controller="Folder" asp-action="Create" method="post" class="profile-create-form">
+                <input type="hidden" name="returnUrl" value="@Url.Action("Index", "Profile")" />
+                <div class="profile-form-field">
+                    <label for="Name" class="profile-form-label">Country / Folder name</label>
+                    <select id="Name" name="Name" class="form-select profile-form-select" required>
+                        <option value="">-- Select country --</option>
+                        @foreach (var country in ViewBag.Countries)
+                        {
+                            <option value="@country.Value">@country.Text</option>
+                        }
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary profile-main-button">Create Folder</button>
+            </form>
+        </div>
+    }
 
     <div class="profile-folders-section">
         <div class="section-heading-row">

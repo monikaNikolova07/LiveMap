@@ -1,21 +1,60 @@
-﻿@model LiveMap.Core.DTOs.Profiles.ProfileEditDto
+@model LiveMap.Core.DTOs.Profiles.ProfileEditDto
+@{
+    ViewData["Title"] = "Edit Profile";
+    var previewImage = string.IsNullOrWhiteSpace(Model.ProfilePicture) ? "/images/default.jpeg" : Model.ProfilePicture;
+}
 
-<h2>Edit Profile</h2>
+<section class="profile-edit-page">
+    <div class="profile-edit-shell">
+        <div class="profile-edit-intro">
+            <p class="section-eyebrow">Personalize your account</p>
+            <h1 class="profile-title">Edit your profile</h1>
+            <p class="profile-bio">Change your username, update your bio and upload a better profile photo.</p>
 
-<form asp-action="Edit" method="post" enctype="multipart/form-data">
-    <input asp-for="Id" type="hidden" />
-    <input asp-for="ProfilePicture" type="hidden" />
+            <div class="profile-edit-preview-card">
+                <img src="@previewImage" alt="Profile preview" class="profile-edit-preview-image" />
+                <div>
+                    <p class="profile-preview-label">Current username</p>
+                    <h2 class="profile-preview-name">@Model.Username</h2>
+                    <p class="profile-preview-bio">@(string.IsNullOrWhiteSpace(Model.Bio) ? "Add a short bio so people can know more about you." : Model.Bio)</p>
+                </div>
+            </div>
+        </div>
 
-    <div>
-        <label asp-for="Bio"></label>
-        <textarea asp-for="Bio"></textarea>
-        <span asp-validation-for="Bio"></span>
+        <div class="profile-edit-card">
+            <form asp-action="Edit" method="post" enctype="multipart/form-data" class="profile-edit-form">
+                <input asp-for="Id" type="hidden" />
+                <input asp-for="ProfilePicture" type="hidden" />
+
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+
+                <div class="profile-form-field">
+                    <label asp-for="Username" class="profile-form-label"></label>
+                    <input asp-for="Username" class="form-control profile-form-input" placeholder="Enter username" />
+                    <span asp-validation-for="Username" class="text-danger small"></span>
+                </div>
+
+                <div class="profile-form-field">
+                    <label asp-for="Bio" class="profile-form-label"></label>
+                    <textarea asp-for="Bio" class="form-control profile-form-textarea" rows="6" placeholder="Tell people a little about yourself..."></textarea>
+                    <span asp-validation-for="Bio" class="text-danger small"></span>
+                </div>
+
+                <div class="profile-form-field">
+                    <label class="profile-form-label">Profile picture</label>
+                    <input type="file" name="imageFile" accept="image/*" class="form-control profile-form-input" />
+                    <p class="profile-field-hint">Upload a clear image for a better looking profile card.</p>
+                </div>
+
+                <div class="profile-edit-actions">
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary profile-main-button">Save Changes</button>
+                </div>
+            </form>
+        </div>
     </div>
+</section>
 
-    <div>
-        <label>Profile picture</label>
-        <input type="file" name="imageFile" accept="image/*" />
-    </div>
-
-    <button type="submit">Save</button>
-</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
