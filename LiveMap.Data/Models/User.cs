@@ -1,10 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LiveMap.Data.Models
 {
@@ -15,9 +10,9 @@ namespace LiveMap.Data.Models
         public Profile? Profile { get; set; }
 
         [InverseProperty(nameof(UserFollowing.User))]
-        public ICollection<UserFollowing>? Followings { get; set; }
+        public ICollection<UserFollowing> Followings { get; set; } = new List<UserFollowing>();
 
         [InverseProperty(nameof(UserFollowing.Following))]
-        public ICollection<UserFollowing>? Followers { get; set; }
+        public ICollection<UserFollowing> Followers { get; set; } = new List<UserFollowing>();
     }
 }

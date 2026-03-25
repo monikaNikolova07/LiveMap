@@ -1,11 +1,12 @@
+using CloudinaryDotNet;
 using LiveMap.Core.Contracts;
 using LiveMap.Core.Services;
+using LiveMap.Core.Utilities;
 using LiveMap.Data;
 using LiveMap.Data.Models;
-using Microsoft.EntityFrameworkCore;
-using CloudinaryDotNet;
-using LiveMap.Core.Utilities;
+using LiveMap.Data.SeedData;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace LiveMap.Web
 {
@@ -15,24 +16,28 @@ namespace LiveMap.Web
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+                ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
             builder.Services.AddDbContext<LiveMapDbContext>(options =>
                 options.UseSqlServer(connectionString));
+
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
             builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = false)
                 .AddRoles<IdentityRole<Guid>>()
                 .AddEntityFrameworkStores<LiveMapDbContext>();
+
             builder.Services.AddControllersWithViews();
 
             builder.Services.AddScoped<IFolderService, FolderService>();
             builder.Services.AddScoped<IImageService, ImageService>();
             builder.Services.AddScoped<IProfileService, ProfileService>();
             builder.Services.AddScoped<IAdminService, AdminService>();
+            builder.Services.AddScoped<JsonSeeder>();
 
             builder.Services.Configure<CloudinarySettings>(
-            builder.Configuration.GetSection("CloudinarySettings"));
+                builder.Configuration.GetSection("CloudinarySettings"));
 
             var cloudinarySettings = builder.Configuration
                 .GetSection("CloudinarySettings")
@@ -50,7 +55,6 @@ namespace LiveMap.Web
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseMigrationsEndPoint();
@@ -58,7 +62,6 @@ namespace LiveMap.Web
             else
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
@@ -73,35 +76,18 @@ namespace LiveMap.Web
             using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
+                var dbContext = services.GetRequiredService<LiveMapDbContext>();
+                var jsonSeeder = services.GetRequiredService<JsonSeeder>();
 
-                var adminService = services.GetRequiredService<IAdminService>();
-                var adminEmails = builder.Configuration
-                    .GetSection("AdminSettings:Emails")
-                    .Get<string[]>() ?? Array.Empty<string>();
-
-                await adminService.EnsureRolesAndAdminsAsync(adminEmails);
-
-                var userManager = services.GetRequiredService<UserManager<User>>();
-                var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
-
-                if (!await roleManager.RoleExistsAsync("Admin"))
-                {
-                    await roleManager.CreateAsync(new IdentityRole<Guid>("Admin"));
-                }
-
-                var user = await userManager.FindByEmailAsync("admin@gmail.com");
-
-                if (user != null && !await userManager.IsInRoleAsync(user, "Admin"))
-                {
-                    await userManager.AddToRoleAsync(user, "Admin");
-                }
+                await dbContext.Database.MigrateAsync();
+                await jsonSeeder.SeedAsync();
             }
 
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
-            app.MapRazorPages();
 
+            app.MapRazorPages();
             app.Run();
         }
     }

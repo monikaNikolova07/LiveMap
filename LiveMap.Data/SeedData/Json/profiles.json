@@ -1,0 +1,30 @@
+[
+  {
+    "id": "55555555-5555-5555-5555-555555555555",
+    "userId": "33333333-3333-3333-3333-333333333333",
+    "profilePicture": "/images/simple-outline-user-configuration-setting-600nw-2636195015.webp",
+    "bio": "Администраторски профил за демо данни.",
+    "acssesability": "Private"
+  },
+  {
+    "id": "66666666-6666-6666-6666-666666666666",
+    "userId": "44444444-4444-4444-4444-444444444444",
+    "profilePicture": "/images/default.jpeg",
+    "bio": "Примерен потребителски профил.",
+    "acssesability": "Public"
+  },
+  {
+    "id": "77777777-7777-7777-7777-777777777777",
+    "userId": "88888888-8888-8888-8888-888888888888",
+    "profilePicture": "/images/default.jpeg",
+    "bio": "Още един тестов профил.",
+    "acssesability": "Public"
+  },
+  {
+    "id": "99999999-9999-9999-9999-999999999999",
+    "userId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "profilePicture": "/images/default.jpeg",
+    "bio": "Тест профил 4.",
+    "acssesability": "Public"
+  }
+]

@@ -1,0 +1,47 @@
+[
+  {
+    "id": "33333333-3333-3333-3333-333333333333",
+    "userName": "admin_moni",
+    "email": "admin@livemap.com",
+    "password": "Admin.MN7",
+    "emailConfirmed": true,
+    "firstName": "Admin",
+    "lastName": "LiveMap"
+  },
+  {
+    "id": "44444444-4444-4444-4444-444444444444",
+    "userName": "monito_nik",
+    "email": "monika@livemap.com",
+    "password": "Monika.07",
+    "emailConfirmed": true,
+    "firstName": "Monika",
+    "lastName": "Demo"
+  },
+  {
+    "id": "55555555-5555-5555-5555-555555555555",
+    "userName": "tedi_nedkova",
+    "email": "tedi@livemap.com",
+    "password": "Tedi.07",
+    "emailConfirmed": true,
+    "firstName": "Teodora",
+    "lastName": "Demo"
+  },
+  {
+    "id": "66666666-6666-6666-6666-666666666666",
+    "userName": "stilqn_chanev",
+    "email": "stelko@livemap.com",
+    "password": "Stelko.07",
+    "emailConfirmed": true,
+    "firstName": "Stilqn",
+    "lastName": "Demo"
+  },
+  {
+    "id": "77777777-7777-7777-7777-777777777777",
+    "userName": "nasko_hutov",
+    "email": "nasko@livemap.com",
+    "password": "Nasko.07",
+    "emailConfirmed": true,
+    "firstName": "Nasko",
+    "lastName": "Demo"
+  }
+]

@@ -4,11 +4,7 @@ using LiveMap.Core.Contracts;
 using LiveMap.Core.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace LiveMap.Core.Services
 {
@@ -29,45 +25,36 @@ namespace LiveMap.Core.Services
         }
 
         public async Task<(string Url, string PublicId)> UploadImageAsync(IFormFile imageFile, string name, string folder)
-
         {
-
             if (imageFile == null || imageFile.Length == 0)
-
             {
-
                 throw new ArgumentException("File is empty!");
-
             }
 
-            var allowedTypes = new[] { "image/jpg", "image/jpeg", "image/png" };
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+            var extension = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
 
-            if (!allowedTypes.Contains(imageFile.ContentType))
-
+            if (string.IsNullOrWhiteSpace(extension) || !allowedExtensions.Contains(extension))
             {
-
-                throw new ArgumentException("Invalid file type");
-
+                throw new ArgumentException("Invalid file type. Allowed types are: .jpg, .jpeg, .png");
             }
-
-            var uniqieName = $"{Guid.NewGuid()}_{name}";
 
             using var stream = imageFile.OpenReadStream();
 
-            var uploadParams = new ImageUploadParams()
-
+            var uploadParams = new ImageUploadParams
             {
-
-                File = new FileDescription(name, stream),
-
+                File = new FileDescription(imageFile.FileName, stream),
                 Folder = folder,
-
             };
 
             var uploadResult = await cloudinary.UploadAsync(uploadParams);
 
-            return (uploadResult.SecureUrl.ToString(), uploadResult.PublicId);
+            if (uploadResult.Error != null)
+            {
+                throw new Exception($"Cloudinary error: {uploadResult.Error.Message}");
+            }
 
+            return (uploadResult.SecureUrl.ToString(), uploadResult.PublicId);
         }
     }
 }

@@ -7,19 +7,21 @@ namespace LiveMap.Data.Models
     {
         [Key]
         public Guid Id { get; set; }
-        public string Name { get; set; }
+
+        public string Name { get; set; } = null!;
 
         [ForeignKey(nameof(ProfileId))]
-        public Profile Profile { get; set; }
+        public Profile Profile { get; set; } = null!;
+
         public Guid ProfileId { get; set; }
 
-        public List<Picture> Pictures { get; set; }
+        public List<Picture> Pictures { get; set; } = new();
 
         [InverseProperty(nameof(FolderStructure.Folder))]
-        public ICollection<FolderStructure> Subfolders { get; set; }
+        public ICollection<FolderStructure> Subfolders { get; set; } = new List<FolderStructure>();
 
         [InverseProperty(nameof(FolderStructure.Subfolder))]
-        public ICollection<FolderStructure> ParentFolders { get; set; }
+        public ICollection<FolderStructure> ParentFolders { get; set; } = new List<FolderStructure>();
 
         public Acssesability Acssesability { get; set; }
     }

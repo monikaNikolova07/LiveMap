@@ -1,0 +1,20 @@
+[
+  {
+    "id": "99999999-9999-9999-9999-999999999999",
+    "url": "/images/gallery/italy-colosseum.jpg",
+    "folderId": "77777777-7777-7777-7777-777777777777",
+    "acssesability": 0
+  },
+  {
+    "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "url": "/images/gallery/italy-venice.jpg",
+    "folderId": "77777777-7777-7777-7777-777777777777",
+    "acssesability": 0
+  },
+  {
+    "id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    "url": "/images/gallery/greece-santorini.jpg",
+    "folderId": "88888888-8888-8888-8888-888888888888",
+    "acssesability": 0
+  }
+]

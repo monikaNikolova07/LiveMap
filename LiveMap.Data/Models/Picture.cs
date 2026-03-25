@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LiveMap.Data.Models
 {
@@ -12,10 +7,12 @@ namespace LiveMap.Data.Models
     {
         [Key]
         public Guid Id { get; set; }
-        public string URL { get; set; }
+
+        public string URL { get; set; } = null!;
 
         [ForeignKey(nameof(FolderId))]
-        public Folder Folder { get; set; }
+        public Folder Folder { get; set; } = null!;
+
         public Guid FolderId { get; set; }
 
         public Acssesability Acssesability { get; set; }
