@@ -1,11 +1,13 @@
-﻿using LiveMap.Core.Contracts;
+using LiveMap.Core.Contracts;
 using LiveMap.Core.DTOs.Folders;
 using LiveMap.Data;
 using LiveMap.Data.Models;
+using LiveMap.Web.Models.Folder;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace LiveMap.Web.Controllers
 {
@@ -14,45 +16,207 @@ namespace LiveMap.Web.Controllers
     {
         private readonly IFolderService folderService;
         private readonly UserManager<User> userManager;
-        private readonly IImageService imageService;
         private readonly LiveMapDbContext context;
 
         public FolderController(
-     IFolderService folderService,
-     UserManager<User> userManager,
-     IImageService imageService,
-     LiveMapDbContext context)
+            IFolderService folderService,
+            UserManager<User> userManager,
+            LiveMapDbContext context)
         {
             this.folderService = folderService;
             this.userManager = userManager;
-            this.imageService = imageService;
             this.context = context;
         }
 
-        /*public async Task<IActionResult> Index()
-        {
-            var folders = await context.Folders
-                .Select(f => new FolderViewModel
-                {
-                    Id = f.Id,
-                    Name = f.Name,
-                    ProfileId = f.ProfileId,
-                    ProfilePicture = f.Profile.ProfilePicture,
-                    PicturesCount = f.Pictures.Count,
-                    Acssesability = f.Acssesability
-                })
-                .ToListAsync();
-
-            return View(folders);
-        }*/
-
         public async Task<IActionResult> Index()
         {
-            var folders = await folderService.GetAllAsync();
+            var currentUserId = GetCurrentUserId();
+            var folders = await folderService.GetAllAsync(currentUserId);
             return View(folders);
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create(Guid? parentFolderId = null)
+        {
+            await PopulateCreateViewDataAsync(parentFolderId, !parentFolderId.HasValue);
+            return View(new FolderCreateDto { ParentFolderId = parentFolderId, IsCountryFolder = !parentFolderId.HasValue });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(FolderCreateDto model)
+        {
+            if (!ModelState.IsValid)
+            {
+                await PopulateCreateViewDataAsync(model.ParentFolderId, !model.ParentFolderId.HasValue);
+                return View(model);
+            }
+
+            var userIdString = userManager.GetUserId(User);
+            if (string.IsNullOrEmpty(userIdString))
+            {
+                return Unauthorized();
+            }
+
+            var userId = Guid.Parse(userIdString);
+
+            try
+            {
+                var createdFolder = await folderService.CreateAsync(model, userId);
+                return RedirectToAction(nameof(Details), new { id = createdFolder.Id });
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                await PopulateCreateViewDataAsync(model.ParentFolderId, !model.ParentFolderId.HasValue);
+                return View(model);
+            }
+        }
+
+        public async Task<IActionResult> Details(Guid id)
+        {
+            var folder = await folderService.GetByIdAsync(id);
+            if (folder == null)
+            {
+                return NotFound();
+            }
+
+            var currentUserId = GetCurrentUserId();
+            var canView = await CanViewFolderAsync(folder, currentUserId);
+            if (!canView)
+            {
+                return Forbid();
+            }
+
+            var isOwner = currentUserId.HasValue && folder.Profile.UserId == currentUserId.Value;
+            var canSeeFriendsOnly = isOwner || await IsFriendAsync(folder.Profile.UserId, currentUserId);
+
+            var model = new FolderDetailsViewModel
+            {
+                Id = folder.Id,
+                Name = folder.Name,
+                Acssesability = folder.Acssesability,
+                IsOwner = isOwner,
+                OwnerProfileId = folder.ProfileId,
+                Pictures = folder.Pictures
+                    .Where(p => CanViewByAccessibility(p.Acssesability, isOwner, canSeeFriendsOnly))
+                    .OrderByDescending(p => p.CreatedOn)
+                    .Select(p => new FolderPictureItemViewModel
+                    {
+                        Id = p.Id,
+                        Url = p.URL,
+                        Acssesability = p.Acssesability
+                    })
+                    .ToList(),
+                Subfolders = folder.Subfolders
+                    .Select(fs => fs.Subfolder)
+                    .Where(sf => CanViewByAccessibility(sf.Acssesability, isOwner, canSeeFriendsOnly))
+                    .OrderBy(sf => sf.Name)
+                    .Select(sf => new FolderChildItemViewModel
+                    {
+                        Id = sf.Id,
+                        Name = sf.Name,
+                        Acssesability = sf.Acssesability,
+                        PicturesCount = sf.Pictures.Count
+                    })
+                    .ToList(),
+                CreateSubfolder = new FolderCreateDto
+                {
+                    ParentFolderId = folder.Id,
+                    IsCountryFolder = false,
+                    Acssesability = folder.Acssesability == Acssesability.Private ? Acssesability.Private : Acssesability.Public
+                },
+                UploadPicture = new FolderPictureUploadViewModel
+                {
+                    FolderId = folder.Id,
+                    Acssesability = folder.Acssesability == Acssesability.Private ? Acssesability.Private : Acssesability.Public
+                }
+            };
+
+            return View(model);
+        }
+
+        public async Task<IActionResult> Upload(Guid folderId)
+        {
+            var folder = await folderService.GetByIdAsync(folderId);
+            if (folder == null)
+            {
+                return NotFound();
+            }
+
+            var currentUserId = GetCurrentUserId();
+            if (currentUserId == null || folder.Profile.UserId != currentUserId.Value)
+            {
+                return Forbid();
+            }
+
+            var effectiveAccessibility = await folderService.GetUploadAccessibilityAsync(folderId, Acssesability.Public);
+            var model = new FolderPictureUploadViewModel { FolderId = folderId, Acssesability = effectiveAccessibility };
+            ViewBag.Accessibilities = (await folderService.GetAvailableAccessibilitiesForCreateAsync(folderId))
+                .Select(a => new SelectListItem
+                {
+                    Text = a == Acssesability.FriendsOnly ? "Friends Only" : a.ToString(),
+                    Value = a.ToString()
+                }).ToList();
+            ViewBag.CurrentFolderId = folderId;
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Upload(FolderPictureUploadViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Accessibilities = (await folderService.GetAvailableAccessibilitiesForCreateAsync(model.FolderId))
+                    .Select(a => new SelectListItem
+                    {
+                        Text = a == Acssesability.FriendsOnly ? "Friends Only" : a.ToString(),
+                        Value = a.ToString()
+                    }).ToList();
+                ViewBag.CurrentFolderId = model.FolderId;
+                return View(model);
+            }
+
+            var folder = await folderService.GetByIdAsync(model.FolderId);
+            var currentUserId = GetCurrentUserId();
+            if (folder == null || currentUserId == null || folder.Profile.UserId != currentUserId.Value)
+            {
+                return Forbid();
+            }
+
+            try
+            {
+                await folderService.UploadPictureAsync(model.FolderId, model.File!, model.Acssesability);
+                return RedirectToAction(nameof(Details), new { id = model.FolderId });
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                ViewBag.Accessibilities = (await folderService.GetAvailableAccessibilitiesForCreateAsync(model.FolderId))
+                    .Select(a => new SelectListItem
+                    {
+                        Text = a == Acssesability.FriendsOnly ? "Friends Only" : a.ToString(),
+                        Value = a.ToString()
+                    }).ToList();
+                ViewBag.CurrentFolderId = model.FolderId;
+                return View(model);
+            }
+        }
+
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var folder = await folderService.GetByIdAsync(id);
+            var currentUserId = GetCurrentUserId();
+            if (folder == null || currentUserId == null || folder.Profile.UserId != currentUserId.Value)
+            {
+                return Forbid();
+            }
+
+            await folderService.DeleteAsync(id);
+            return RedirectToAction(nameof(Index));
+        }
+
+        private async Task PopulateCreateViewDataAsync(Guid? parentFolderId, bool isCountryFolder)
         {
             ViewBag.Countries = Enum.GetValues(typeof(Country))
                 .Cast<Country>()
@@ -62,306 +226,112 @@ namespace LiveMap.Web.Controllers
                     Value = c.ToString()
                 }).ToList();
 
-            return View(new FolderCreateDto());
-        }
-
-        /* public IActionResult Create()
-        {
-            ViewBag.Countries = Enum.GetValues(typeof(Country))
-                                .Cast<Country>()
-                                .Select(c => new SelectListItem
-                                {
-                                    Text = c.ToString(),
-                                    Value = c.ToString()
-                                }).ToList();
-
-            return View(new FolderCreateViewModel());
-        }*/
-
-
-        /*[HttpPost]
-        public async Task<IActionResult> Create(FolderCreateViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                ViewBag.Countries = Enum.GetValues(typeof(Country))
-                                        .Cast<Country>()
-                                        .Select(c => new SelectListItem
-                                        {
-                                            Text = c.ToString(),
-                                            Value = c.ToString()
-                                        }).ToList();
-
-                return View(model);
-            }
-            var userId = Guid.Parse(userManager.GetUserId(User));
-            var profile = context.Users.Include(u => u.Profile).FirstOrDefault(u => u.Id == userId).Profile;
-            if (profile == null)
-            {
-                return NotFound();
-            }
-
-            Folder folder = new Folder
-            {
-                Id = Guid.NewGuid(),
-                Name = model.Name, 
-                ProfileId = profile.Id,
-                Acssesability = model.Acssesability
-            };
-
-            await context.Folders.AddAsync(folder);
-            await context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Index));
-        }*/
-
-        [HttpPost]
-        public async Task<IActionResult> Create(FolderCreateDto model)
-        {
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage)
-                    .ToList();
-
-                ViewBag.Errors = errors;
-
-                ViewBag.Countries = Enum.GetValues(typeof(Country))
-                    .Cast<Country>()
-                    .Select(c => new SelectListItem
-                    {
-                        Text = c.ToString(),
-                        Value = c.ToString()
-                    }).ToList();
-
-                return View(model);
-            }
-
-            var userIdString = userManager.GetUserId(User);
-
-            if (string.IsNullOrEmpty(userIdString))
-            {
-                return Content("UserId is null");
-            }
-
-            var userId = Guid.Parse(userIdString);
-
-            try
-            {
-                await folderService.CreateAsync(model, userId);
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                return Content(ex.Message);
-            }
-        }
-
-        /*
-        public async Task<IActionResult> Details(Guid id)
-        {
-            var folder = await context.Folders
-                .Include(f => f.Pictures) // взимаме снимките
-                .FirstOrDefaultAsync(f => f.Id == id);
-
-            if (folder == null) return NotFound();
-
-            return View(folder);
-        }
-        */
-        /*
-       public async Task<IActionResult> Details(Guid id)
-       {
-           var folder = await folderService.GetByIdAsync(id);
-           if (folder == null)
-           {
-               return NotFound();
-           }
-
-           return View(folder);
-       }
-
-       // View All Pictures
-       public async Task<IActionResult> Pictures(Guid folderId)
-       {
-           var pictures = await context.Pictures
-               .Where(p => p.FolderId == folderId)
-               .ToListAsync();
-
-           ViewBag.FolderId = folderId;
-           return View(pictures);
-       }
-       */
-        public async Task<IActionResult> Details(Guid id)
-        {
-            var folder = await folderService.GetByIdAsync(id);
-            if (folder == null)
-            {
-                return NotFound();
-            }
-
-            return View(folder);
-        }
-
-        /*
-        // Upload picture (GET)
-        public IActionResult Upload(Guid folderId)
-        {
-            ViewBag.FolderId = folderId;
-            return View();
-        }
-
-        // Upload picture (POST)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Upload(Guid folderId, IFormFile file)
-        {
-            if (file == null || file.Length == 0)
-            {
-                ModelState.AddModelError("", "Please select a file.");
-                ViewBag.FolderId = folderId;
-                return View();
-            }
-
-            // Създаваме папка wwwroot/uploads, ако няма
-            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
-
-            // Създаваме уникално име за файла
-            var uniqueFileName = $"{Guid.NewGuid()}_{file.FileName}";
-            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-            // Записваме файла на диск
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
-
-            // Създаваме Picture обект с URL
-            var picture = new Picture
-            {
-                Id = Guid.NewGuid(),
-                FolderId = folderId,
-                URL = "/uploads/" + uniqueFileName,  // тук е пътя за показване в браузъра
-                Acssesability = Acssesability.Public  // или задай от форма
-            };
-
-            await context.Pictures.AddAsync(picture);
-            await context.SaveChangesAsync();
-
-            return RedirectToAction("Pictures", new { folderId });
-        }
-
-        
-
-        public async Task<IActionResult> Delete(Guid id)
-        {
-            var folder = await context.Folders
-                .Include(f => f.Pictures)
-                .FirstOrDefaultAsync(f => f.Id == id);
-
-            if (folder == null) return NotFound();
-
-            return View(folder);
-        }
-
-        // POST: Folder/Delete/{id} -> изтриване
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(Guid id)
-        {
-            var folder = await context.Folders
-                .Include(f => f.Pictures)
-                .FirstOrDefaultAsync(f => f.Id == id);
-
-            if (folder == null) return NotFound();
-
-            // Премахваме всички снимки първо
-            context.Pictures.RemoveRange(folder.Pictures);
-
-            // Премахваме папката
-            context.Folders.Remove(folder);
-
-            await context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Index));
-        }
-    }
-        */
-
-        public async Task<IActionResult> Pictures(Guid folderId)
-        {
-            var pictures = await folderService.GetPicturesAsync(folderId);
-            ViewBag.FolderId = folderId;
-            return View(pictures);
-        }
-
-        public IActionResult Upload(Guid folderId)
-        {
-            ViewBag.FolderId = folderId;
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Upload(Guid folderId, IFormFile file)
-        {
-            if (file == null || file.Length == 0)
-            {
-                ModelState.AddModelError(string.Empty, "Please select a file.");
-                ViewBag.FolderId = folderId;
-                return View();
-            }
-
-            try
-            {
-                var imageResult = await imageService.UploadImageAsync(
-                    file,
-                    Guid.NewGuid().ToString(),
-                    "images");
-
-                var picture = new Picture
+            var accessibilities = await folderService.GetAvailableAccessibilitiesForCreateAsync(parentFolderId);
+            ViewBag.Accessibilities = accessibilities
+                .Select(a => new SelectListItem
                 {
-                    Id = Guid.NewGuid(),
-                    URL = imageResult.Url,
-                    FolderId = folderId,
-                    Acssesability = Acssesability.Public,
-                    CreatedOn = DateTime.UtcNow
-                };
+                    Text = a switch
+                    {
+                        Acssesability.FriendsOnly => "Friends Only",
+                        _ => a.ToString()
+                    },
+                    Value = a.ToString()
+                }).ToList();
 
-                await context.Pictures.AddAsync(picture);
-                await context.SaveChangesAsync();
-
-                return RedirectToAction(nameof(Details), new { id = folderId });
-            }
-            catch (Exception ex)
-            {
-                ModelState.AddModelError(string.Empty, ex.Message);
-                ViewBag.FolderId = folderId;
-                return View();
-            }
+            ViewBag.ParentFolderId = parentFolderId;
+            ViewBag.IsCountryFolder = isCountryFolder;
         }
 
-        public async Task<IActionResult> Delete(Guid id)
+        private Guid? GetCurrentUserId()
         {
-            var folder = await folderService.GetByIdAsync(id);
-            if (folder == null)
+            var userIdString = userManager.GetUserId(User);
+            return Guid.TryParse(userIdString, out var userId) ? userId : null;
+        }
+
+        private async Task<bool> CanViewFolderAsync(Folder folder, Guid? currentUserId)
+        {
+            var isOwner = currentUserId.HasValue && folder.Profile.UserId == currentUserId.Value;
+            if (isOwner)
             {
-                return NotFound();
+                return true;
             }
 
-            return View(folder);
+            if (folder.Acssesability == Acssesability.Public)
+            {
+                return true;
+            }
+
+            if (folder.Acssesability == Acssesability.Private)
+            {
+                return false;
+            }
+
+            return await IsFriendAsync(folder.Profile.UserId, currentUserId);
         }
 
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(Guid id)
+        private async Task<bool> IsFriendAsync(Guid ownerUserId, Guid? currentUserId)
         {
-            await folderService.DeleteAsync(id);
-            return RedirectToAction(nameof(Index));
+            if (!currentUserId.HasValue)
+            {
+                return false;
+            }
+
+            return await context.UserFollowings.AnyAsync(uf => uf.UserId == currentUserId.Value && uf.FolowingId == ownerUserId)
+                   && await context.UserFollowings.AnyAsync(uf => uf.UserId == ownerUserId && uf.FolowingId == currentUserId.Value);
         }
 
+        private static bool CanViewByAccessibility(Acssesability acssesability, bool isOwner, bool canSeeFriendsOnly)
+        {
+            if (isOwner)
+            {
+                return true;
+            }
+
+            return acssesability switch
+            {
+                Acssesability.Public => true,
+                Acssesability.FriendsOnly => canSeeFriendsOnly,
+                _ => false
+            };
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CreateSubfolder(Guid parentFolderId)
+        {
+            await PopulateCreateViewDataAsync(parentFolderId, false);
+
+            var model = new FolderCreateDto
+            {
+                ParentFolderId = parentFolderId,
+                IsCountryFolder = false
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateSubfolder(FolderCreateDto model)
+        {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return Unauthorized();
+            }
+
+            var userId = Guid.Parse(userIdClaim);
+
+            model.IsCountryFolder = false;
+
+            if (!ModelState.IsValid)
+            {
+                await PopulateCreateViewDataAsync(model.ParentFolderId, false);
+                return View(model);
+            }
+
+            var createdFolder = await folderService.CreateAsync(model, userId);
+
+            return RedirectToAction("Details", new { id = createdFolder.Id });
+        }
     }
 }

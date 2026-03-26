@@ -110,7 +110,7 @@ namespace LiveMap.Web.Areas.Identity.Pages.Account
                 }
 
                 var result = await _signInManager.PasswordSignInAsync(
-                    user.UserName!,
+                    user,
                     Input.Password,
                     Input.RememberMe,
                     lockoutOnFailure: false);

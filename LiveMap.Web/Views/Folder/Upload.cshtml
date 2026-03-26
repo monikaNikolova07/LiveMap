@@ -1,15 +1,42 @@
-﻿@using LiveMap.Data.Models
+@using Microsoft.AspNetCore.Mvc.Rendering
+@model LiveMap.Web.Models.Folder.FolderPictureUploadViewModel
+
 @{
-    var folderId = ViewBag.FolderId;
+    var accessibilities = ViewBag.Accessibilities as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var isLockedToPrivate = accessibilities.Count() == 1 && accessibilities.First().Value == "Private";
 }
 
 <h2>Upload Picture</h2>
 
-<form asp-action="Upload" method="post" enctype="multipart/form-data">
+@if (isLockedToPrivate)
+{
+    <div class="alert alert-info">This folder is inside a private main folder, so uploaded pictures will also be private.</div>
+}
+
+<form asp-action="Upload" method="post" enctype="multipart/form-data" class="row g-3">
     @Html.AntiForgeryToken()
-    <input type="hidden" name="folderId" value="@ViewBag.FolderId" />
-    <input type="file" name="file" />
-    <button type="submit">Upload</button>
+    <input asp-for="FolderId" type="hidden" />
+
+    <div class="col-md-6">
+        <label asp-for="File" class="form-label">Image file</label>
+        <input asp-for="File" type="file" class="form-control" accept="image/*" />
+        <span asp-validation-for="File" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-4">
+        <label asp-for="Acssesability" class="form-label">Accessibility</label>
+        <select asp-for="Acssesability" asp-items="ViewBag.Accessibilities" class="form-select"></select>
+    </div>
+
+    <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-success w-100">Upload</button>
+    </div>
+
+    <div class="col-12">
+        <a asp-action="Details" asp-route-id="@Model.FolderId" class="btn btn-outline-secondary">Back to folder</a>
+    </div>
 </form>
 
-<a asp-action="Details" asp-route-id="@folderId" class="btn btn-secondary mt-2">Back to Folder</a>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

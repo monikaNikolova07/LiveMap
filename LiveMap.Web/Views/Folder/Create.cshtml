@@ -1,25 +1,44 @@
-﻿@model LiveMap.Core.DTOs.Folders.FolderCreateDto
+@model LiveMap.Core.DTOs.Folders.FolderCreateDto
 
-<h2>Create Folder</h2>
-
-@if (ViewBag.Errors != null)
-{
-    <ul>
-        @foreach (var error in ViewBag.Errors)
-        {
-            <li>@error</li>
-        }
-    </ul>
+@{
+    var isCountryFolder = ViewBag.IsCountryFolder != null && (bool)ViewBag.IsCountryFolder;
+    ViewData["Title"] = isCountryFolder ? "Create Folder" : "Create Subfolder";
 }
 
-<form asp-action="Create" method="post">
-    <div class="form-group mb-3">
-        <label asp-for="Name" class="form-label">Country</label>
-        <select asp-for="Name" asp-items="ViewBag.Countries" class="form-control">
-            <option value="">-- Select country --</option>
-        </select>
+<h2>@ViewData["Title"]</h2>
+
+<form asp-action="Create" method="post" class="row g-3">
+    @Html.AntiForgeryToken()
+    <input asp-for="ParentFolderId" type="hidden" />
+    <input asp-for="IsCountryFolder" type="hidden" />
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="col-md-6">
+        <label asp-for="Name" class="form-label">@(isCountryFolder ? "Country" : "Folder name")</label>
+        @if (isCountryFolder)
+        {
+            <select asp-for="Name" asp-items="ViewBag.Countries" class="form-select">
+                <option value="">-- Select country --</option>
+            </select>
+        }
+        else
+        {
+            <input asp-for="Name" class="form-control" placeholder="Enter folder name" />
+        }
         <span asp-validation-for="Name" class="text-danger"></span>
     </div>
 
-    <button type="submit">Create</button>
+    <div class="col-md-4">
+        <label asp-for="Acssesability" class="form-label">Accessibility</label>
+        <select asp-for="Acssesability" asp-items="ViewBag.Accessibilities" class="form-select"></select>
+    </div>
+
+    <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary w-100">Save</button>
+    </div>
 </form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

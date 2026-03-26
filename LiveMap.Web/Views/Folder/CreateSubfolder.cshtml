@@ -1,0 +1,43 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@model LiveMap.Core.DTOs.Folders.FolderCreateDto
+
+@{
+    ViewData["Title"] = "Create Subfolder";
+    var accessibilities = ViewBag.Accessibilities as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var isLockedToPrivate = accessibilities.Count() == 1 && accessibilities.First().Value == "Private";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4">Create Subfolder</h1>
+
+    @if (isLockedToPrivate)
+    {
+        <div class="alert alert-info">The main folder is private, so this subfolder will also be private.</div>
+    }
+
+    <form asp-action="CreateSubfolder" method="post">
+        @Html.AntiForgeryToken()
+
+        <input asp-for="ParentFolderId" type="hidden" />
+        <input asp-for="IsCountryFolder" type="hidden" value="false" />
+
+        <div class="mb-3">
+            <label asp-for="Name" class="form-label">Subfolder name</label>
+            <input asp-for="Name" class="form-control" placeholder="Enter subfolder name" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Acssesability" class="form-label">Accessibility</label>
+            <select asp-for="Acssesability" asp-items="ViewBag.Accessibilities" class="form-select"></select>
+            <span asp-validation-for="Acssesability" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-success">Create subfolder</button>
+        <a asp-action="Details" asp-route-id="@Model.ParentFolderId" class="btn btn-outline-secondary ms-2">Cancel</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

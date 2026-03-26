@@ -1,4 +1,4 @@
-﻿using CloudinaryDotNet;
+using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using LiveMap.Core.Contracts;
 using LiveMap.Core.DTOs.Folders;
@@ -14,15 +14,23 @@ namespace LiveMap.Core.Services
         private readonly LiveMapDbContext context;
         private readonly Cloudinary cloudinary;
 
-        public FolderService(LiveMapDbContext _context, Cloudinary _cloudinary)
+        public FolderService(LiveMapDbContext context, Cloudinary cloudinary)
         {
-            context = _context;
-            cloudinary = _cloudinary;
+            this.context = context;
+            this.cloudinary = cloudinary;
         }
 
-        public async Task<IEnumerable<FolderIndexDto>> GetAllAsync()
+        public async Task<IEnumerable<FolderIndexDto>> GetAllAsync(Guid? currentUserId = null)
         {
-            return await context.Folders
+            var query = context.Folders.AsQueryable();
+
+            if (currentUserId.HasValue)
+            {
+                query = query.Where(f => f.Profile.UserId == currentUserId.Value);
+            }
+
+            return await query
+                .OrderBy(f => f.Name)
                 .Select(f => new FolderIndexDto
                 {
                     Id = f.Id,
@@ -35,7 +43,7 @@ namespace LiveMap.Core.Services
                 .ToListAsync();
         }
 
-        public async Task CreateAsync(FolderCreateDto model, Guid userId)
+        public async Task<LiveMap.Data.Models.Folder> CreateAsync(FolderCreateDto model, Guid userId)
         {
             var profile = await context.Users
                 .Include(u => u.Profile)
@@ -48,23 +56,137 @@ namespace LiveMap.Core.Services
                 throw new InvalidOperationException("Profile not found for the current user.");
             }
 
+            LiveMap.Data.Models.Folder? parentFolder = null;
+            if (model.ParentFolderId.HasValue)
+            {
+                parentFolder = await context.Folders
+                    .Include(f => f.Profile)
+                    .FirstOrDefaultAsync(f => f.Id == model.ParentFolderId.Value);
+
+                if (parentFolder == null)
+                {
+                    throw new InvalidOperationException("Parent folder not found.");
+                }
+
+                if (parentFolder.ProfileId != profile.Id)
+                {
+                    throw new InvalidOperationException("You can only create subfolders in your own folders.");
+                }
+            }
+
+            var effectiveAccessibility = await GetEffectiveCreateAccessibilityAsync(model.ParentFolderId, model.Acssesability);
+
             var folder = new LiveMap.Data.Models.Folder
             {
                 Id = Guid.NewGuid(),
                 Name = model.Name,
                 ProfileId = profile.Id,
-                Acssesability = LiveMap.Data.Models.Acssesability.Public
+                Acssesability = effectiveAccessibility
             };
 
             await context.Folders.AddAsync(folder);
+
+            if (parentFolder != null)
+            {
+                await context.FolderStructures.AddAsync(new FolderStructure
+                {
+                    FolderId = parentFolder.Id,
+                    SubfolderId = folder.Id
+                });
+            }
+
             await context.SaveChangesAsync();
+            return folder;
+        }
+
+
+
+        public async Task<IEnumerable<Acssesability>> GetAvailableAccessibilitiesForCreateAsync(Guid? parentFolderId)
+        {
+            if (!parentFolderId.HasValue)
+            {
+                return Enum.GetValues<Acssesability>();
+            }
+
+            var rootAccessibility = await GetRootFolderAccessibilityAsync(parentFolderId.Value);
+            if (rootAccessibility == Acssesability.Private)
+            {
+                return new[] { Acssesability.Private };
+            }
+
+            return Enum.GetValues<Acssesability>();
+        }
+
+        public async Task<Acssesability> GetUploadAccessibilityAsync(Guid folderId, Acssesability requestedAccessibility)
+        {
+            var rootAccessibility = await GetRootFolderAccessibilityAsync(folderId);
+            if (rootAccessibility == Acssesability.Private)
+            {
+                return Acssesability.Private;
+            }
+
+            var folder = await context.Folders.FirstOrDefaultAsync(f => f.Id == folderId);
+            if (folder == null)
+            {
+                throw new InvalidOperationException("Folder not found.");
+            }
+
+            if (folder.Acssesability == Acssesability.Private)
+            {
+                return Acssesability.Private;
+            }
+
+            return requestedAccessibility;
+        }
+
+        private async Task<Acssesability> GetEffectiveCreateAccessibilityAsync(Guid? parentFolderId, Acssesability requestedAccessibility)
+        {
+            if (!parentFolderId.HasValue)
+            {
+                return requestedAccessibility;
+            }
+
+            var rootAccessibility = await GetRootFolderAccessibilityAsync(parentFolderId.Value);
+            return rootAccessibility == Acssesability.Private ? Acssesability.Private : requestedAccessibility;
+        }
+
+        private async Task<Acssesability> GetRootFolderAccessibilityAsync(Guid folderId)
+        {
+            var currentFolderId = folderId;
+
+            while (true)
+            {
+                var folder = await context.Folders
+                    .Include(f => f.ParentFolders)
+                    .FirstOrDefaultAsync(f => f.Id == currentFolderId);
+
+                if (folder == null)
+                {
+                    throw new InvalidOperationException("Folder not found.");
+                }
+
+                var parentLink = folder.ParentFolders.FirstOrDefault();
+                if (parentLink == null)
+                {
+                    return folder.Acssesability;
+                }
+
+                currentFolderId = parentLink.FolderId;
+            }
         }
 
         public async Task<LiveMap.Data.Models.Folder?> GetByIdAsync(Guid id)
         {
             return await context.Folders
-                .Include(f => f.Pictures)
                 .Include(f => f.Profile)
+                    .ThenInclude(p => p.User)
+                .Include(f => f.Pictures)
+                .Include(f => f.Subfolders)
+                    .ThenInclude(fs => fs.Subfolder)
+                        .ThenInclude(sf => sf.Pictures)
+                .Include(f => f.Subfolders)
+                    .ThenInclude(fs => fs.Subfolder)
+                        .ThenInclude(sf => sf.Subfolders)
                 .FirstOrDefaultAsync(f => f.Id == id);
         }
 
@@ -75,7 +197,7 @@ namespace LiveMap.Core.Services
                 .ToListAsync();
         }
 
-        public async Task UploadPictureAsync(Guid folderId, IFormFile file)
+        public async Task UploadPictureAsync(Guid folderId, IFormFile file, Acssesability acssesability)
         {
             var folder = await context.Folders.FirstOrDefaultAsync(f => f.Id == folderId);
             if (folder == null)
@@ -117,7 +239,7 @@ namespace LiveMap.Core.Services
                 Id = Guid.NewGuid(),
                 FolderId = folderId,
                 URL = uploadResult.SecureUrl?.ToString() ?? string.Empty,
-                Acssesability = Acssesability.Public,
+                Acssesability = await GetUploadAccessibilityAsync(folderId, acssesability),
                 CreatedOn = DateTime.UtcNow
             };
 
@@ -129,6 +251,8 @@ namespace LiveMap.Core.Services
         {
             var folder = await context.Folders
                 .Include(f => f.Pictures)
+                .Include(f => f.Subfolders)
+                .Include(f => f.ParentFolders)
                 .FirstOrDefaultAsync(f => f.Id == id);
 
             if (folder == null)
@@ -137,6 +261,8 @@ namespace LiveMap.Core.Services
             }
 
             context.Pictures.RemoveRange(folder.Pictures);
+            context.FolderStructures.RemoveRange(folder.Subfolders);
+            context.FolderStructures.RemoveRange(folder.ParentFolders);
             context.Folders.Remove(folder);
 
             await context.SaveChangesAsync();

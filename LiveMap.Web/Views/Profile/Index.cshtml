@@ -45,13 +45,22 @@
         </div>
     </div>
 
-    <div class="profile-folders-section">
-        <div class="section-heading-row">
-            <div>
-                <p class="section-eyebrow">Folders</p>
-                <h2 class="section-title">@(isPublicProfile ? "Public folders" : "My folders")</h2>
-            </div>
+
+    <div class="section-heading-row d-flex justify-content-between align-items-center">
+        <div>
+            <p class="section-eyebrow">Folders</p>
+            <h2 class="section-title">@(isPublicProfile ? "Visible folders" : "My folders")</h2>
         </div>
+
+        @if (Model.IsOwnProfile)
+        {
+            <a asp-controller="Folder"
+               asp-action="Create"
+               class="btn btn-success">
+                Create folder
+            </a>
+        }
+    </div>
 
         @if (Model.Folders != null && Model.Folders.Any())
         {
@@ -71,6 +80,7 @@
                             </svg>
                         </span>
                         <span class="folder-shortcut-name">@folder.Name</span>
+                        <span class="badge text-bg-light mt-2">@folder.AccessibilityLabel</span>
                     </a>
                 }
             </div>
@@ -78,8 +88,12 @@
         else
         {
             <div class="empty-state-card">
-                <p>@(isPublicProfile ? "This creator does not have any public folders yet." : "You have no folders yet.")</p>
+                <p>@(isPublicProfile ? "This creator does not have any visible folders yet." : "You have no folders yet.")</p>
             </div>
         }
     </div>
 </section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

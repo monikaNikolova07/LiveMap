@@ -1,14 +1,18 @@
-﻿using LiveMap.Data.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using LiveMap.Data.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace LiveMap.Core.DTOs.Folders
 {
     public class FolderCreateDto
     {
-        public string Name { get; set; }
+        [Required]
+        [StringLength(100)]
+        public string Name { get; set; } = string.Empty;
+
+        public Acssesability Acssesability { get; set; } = Acssesability.Public;
+
+        public Guid? ParentFolderId { get; set; }
+
+        public bool IsCountryFolder { get; set; } = true;
     }
 }
