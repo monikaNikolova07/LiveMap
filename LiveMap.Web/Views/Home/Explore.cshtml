@@ -1,22 +1,114 @@
 @model LiveMap.Web.Models.Home.ExploreFeedViewModel
+@using LiveMap.Web.Models.Home
 @{
     ViewData["Title"] = "Explore";
 }
 
-<section class="mb-4">
+<section class="mb-4 explore-hero">
     <p class="section-eyebrow">Explore</p>
-    <h1 class="section-title">Newest public pictures</h1>
-    <p class="text-muted">Browse the latest uploaded public images and open the creator profiles.</p>
+    <h1 class="section-title">@Model.Heading</h1>
+    <p class="text-muted">@Model.Description</p>
 </section>
 
-@if (Model.Pictures.Any())
+<section class="explore-filter-card card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="get" asp-controller="Home" asp-action="Explore" class="row g-3 align-items-end">
+            <div class="col-lg-5">
+                <label for="filter" class="form-label fw-semibold">Filter</label>
+                <select id="filter" name="filter" class="form-select explore-filter-select">
+                    @if (Model.SelectedFilter == ExploreFilterOptions.Newest)
+                    {
+                        <option value="@ExploreFilterOptions.Newest" selected>Newest public pictures</option>
+                    }
+                    else
+                    {
+                        <option value="@ExploreFilterOptions.Newest">Newest public pictures</option>
+                    }
+
+                    @if (Model.SelectedFilter == ExploreFilterOptions.Oldest)
+                    {
+                        <option value="@ExploreFilterOptions.Oldest" selected>Oldest public pictures</option>
+                    }
+                    else
+                    {
+                        <option value="@ExploreFilterOptions.Oldest">Oldest public pictures</option>
+                    }
+
+                    @if (Model.SelectedFilter == ExploreFilterOptions.ByUser)
+                    {
+                        <option value="@ExploreFilterOptions.ByUser" selected>Pictures by username</option>
+                    }
+                    else
+                    {
+                        <option value="@ExploreFilterOptions.ByUser">Pictures by username</option>
+                    }
+
+                    @if (Model.SelectedFilter == ExploreFilterOptions.PopularUsers)
+                    {
+                        <option value="@ExploreFilterOptions.PopularUsers" selected>Pictures from most popular users</option>
+                    }
+                    else
+                    {
+                        <option value="@ExploreFilterOptions.PopularUsers">Pictures from most popular users</option>
+                    }
+
+                    @if (Model.SelectedFilter == ExploreFilterOptions.FollowingNewest)
+                    {
+                        <option value="@ExploreFilterOptions.FollowingNewest" selected>Newest pictures from people I follow</option>
+                    }
+                    else
+                    {
+                        <option value="@ExploreFilterOptions.FollowingNewest">Newest pictures from people I follow</option>
+                    }
+
+                    @if (Model.SelectedFilter == ExploreFilterOptions.FriendsNewest)
+                    {
+                        <option value="@ExploreFilterOptions.FriendsNewest" selected>Newest pictures from my friends</option>
+                    }
+                    else
+                    {
+                        <option value="@ExploreFilterOptions.FriendsNewest">Newest pictures from my friends</option>
+                    }
+                </select>
+            </div>
+            <div class="col-lg-5"
+                 id="usernameContainer"
+                 style="@(Model.SelectedFilter == ExploreFilterOptions.ByUser ? "display:block;" : "display:none;")">
+                <label for="username" class="form-label fw-semibold">Username</label>
+                <input id="username"
+                       name="username"
+                       class="form-control"
+                       value="@Model.UsernameQuery"
+                       placeholder="Enter username..." />
+            </div>
+            <div class="col-lg-2 d-grid">
+                <button type="submit" class="btn btn-primary">Apply</button>
+            </div>
+        </form>
+        <div class="explore-filter-hint mt-3">
+            <span class="badge rounded-pill text-bg-light">@Model.ResultsCount results</span>
+            <span class="text-muted small">Bonus: explore now supports feed filters for followed users, friends, oldest uploads and top creators.</span>
+        </div>
+    </div>
+</section>
+
+@if (Model.RequiresLoginNotice)
+{
+    <div class="alert alert-warning">To use this filter, first sign in to your account.</div>
+}
+
+@if (Model.SelectedFilter == ExploreFilterOptions.ByUser && string.IsNullOrWhiteSpace(Model.UsernameQuery))
+{
+    <div class="alert alert-info">Type a username above and press Apply to see that user's public pictures.</div>
+}
+else if (Model.Pictures.Any())
 {
     <div class="row g-4">
         @foreach (var picture in Model.Pictures)
         {
             <div class="col-md-6 col-xl-4">
-                <div class="card h-100 shadow-sm">
-                   <img src="@picture.ImageUrl" class="card-img-top explore-image" alt="@picture.FolderName image" />
+                <div class="card h-100 shadow-sm explore-card">
+                    <img src="@picture.ImageUrl" class="card-img-top explore-image" alt="@picture.FolderName image" />
                     <div class="card-body">
                         <div class="d-flex align-items-center gap-3 mb-3">
                             <img src="@(string.IsNullOrWhiteSpace(picture.ProfilePicture) ? "/images/default.jpeg" : picture.ProfilePicture)"
@@ -27,6 +119,10 @@
                                 <div class="fw-semibold">@picture.Username</div>
                                 <div class="text-muted small">Folder: @picture.FolderName</div>
                                 <div class="text-muted small">@picture.CreatedOn.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</div>
+                                @if (Model.SelectedFilter == ExploreFilterOptions.PopularUsers)
+                                {
+                                    <div class="text-muted small">Followers: @picture.FollowersCount</div>
+                                }
                             </div>
                         </div>
                         <a asp-controller="Profile" asp-action="Details" asp-route-id="@picture.ProfileId" class="btn btn-outline-primary">Open profile</a>
@@ -38,5 +134,24 @@
 }
 else
 {
-    <div class="alert alert-info">No public pictures have been uploaded yet.</div>
+    <div class="alert alert-info">No pictures matched this filter yet.</div>
+}
+
+@section Scripts {
+    <script>
+        const filterSelect = document.getElementById("filter");
+        const usernameContainer = document.getElementById("usernameContainer");
+
+        function toggleUsernameField() {
+            if (filterSelect.value === "ByUser") {
+                usernameContainer.style.display = "block";
+            } else {
+                usernameContainer.style.display = "none";
+            }
+        }
+
+        toggleUsernameField();
+
+        filterSelect.addEventListener("change", toggleUsernameField);
+    </script>
 }
