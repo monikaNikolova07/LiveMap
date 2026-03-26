@@ -11,6 +11,7 @@ namespace LiveMap.Web.Models.Folder
         public Acssesability Acssesability { get; set; }
         public bool IsOwner { get; set; }
         public Guid OwnerProfileId { get; set; }
+        public Guid? ParentFolderId { get; set; }
         public List<FolderPictureItemViewModel> Pictures { get; set; } = new();
         public List<FolderChildItemViewModel> Subfolders { get; set; } = new();
         public FolderCreateDto CreateSubfolder { get; set; } = new() { IsCountryFolder = false };

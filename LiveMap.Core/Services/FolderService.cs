@@ -249,23 +249,48 @@ namespace LiveMap.Core.Services
 
         public async Task DeleteAsync(Guid id)
         {
-            var folder = await context.Folders
-                .Include(f => f.Pictures)
-                .Include(f => f.Subfolders)
-                .Include(f => f.ParentFolders)
-                .FirstOrDefaultAsync(f => f.Id == id);
+            var foldersToDelete = new List<LiveMap.Data.Models.Folder>();
+            await CollectFoldersForDeleteAsync(id, foldersToDelete);
 
-            if (folder == null)
+            if (!foldersToDelete.Any())
             {
                 throw new InvalidOperationException("Folder not found.");
             }
 
-            context.Pictures.RemoveRange(folder.Pictures);
-            context.FolderStructures.RemoveRange(folder.Subfolders);
-            context.FolderStructures.RemoveRange(folder.ParentFolders);
-            context.Folders.Remove(folder);
+            var folderIds = foldersToDelete.Select(f => f.Id).ToList();
+
+            var pictures = await context.Pictures
+                .Where(p => folderIds.Contains(p.FolderId))
+                .ToListAsync();
+
+            var structures = await context.FolderStructures
+                .Where(fs => folderIds.Contains(fs.FolderId) || folderIds.Contains(fs.SubfolderId))
+                .ToListAsync();
+
+            context.Pictures.RemoveRange(pictures);
+            context.FolderStructures.RemoveRange(structures);
+            context.Folders.RemoveRange(foldersToDelete.GroupBy(f => f.Id).Select(g => g.First()));
 
             await context.SaveChangesAsync();
+        }
+
+        private async Task CollectFoldersForDeleteAsync(Guid folderId, List<LiveMap.Data.Models.Folder> foldersToDelete)
+        {
+            var folder = await context.Folders
+                .Include(f => f.Subfolders)
+                .FirstOrDefaultAsync(f => f.Id == folderId);
+
+            if (folder == null || foldersToDelete.Any(f => f.Id == folderId))
+            {
+                return;
+            }
+
+            foldersToDelete.Add(folder);
+
+            foreach (var subfolder in folder.Subfolders)
+            {
+                await CollectFoldersForDeleteAsync(subfolder.SubfolderId, foldersToDelete);
+            }
         }
     }
 }

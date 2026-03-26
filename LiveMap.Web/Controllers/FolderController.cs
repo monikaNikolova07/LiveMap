@@ -97,6 +97,7 @@ namespace LiveMap.Web.Controllers
                 Acssesability = folder.Acssesability,
                 IsOwner = isOwner,
                 OwnerProfileId = folder.ProfileId,
+                ParentFolderId = folder.ParentFolders.Select(pf => (Guid?)pf.FolderId).FirstOrDefault(),
                 Pictures = folder.Pictures
                     .Where(p => CanViewByAccessibility(p.Acssesability, isOwner, canSeeFriendsOnly))
                     .OrderByDescending(p => p.CreatedOn)
@@ -203,7 +204,9 @@ namespace LiveMap.Web.Controllers
             }
         }
 
-        public async Task<IActionResult> Delete(Guid id)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(Guid id, string? returnUrl = null)
         {
             var folder = await folderService.GetByIdAsync(id);
             var currentUserId = GetCurrentUserId();
@@ -212,8 +215,22 @@ namespace LiveMap.Web.Controllers
                 return Forbid();
             }
 
+            var parentFolderId = folder.ParentFolders.Select(pf => (Guid?)pf.FolderId).FirstOrDefault();
+            var profileId = folder.ProfileId;
+
             await folderService.DeleteAsync(id);
-            return RedirectToAction(nameof(Index));
+
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+
+            if (parentFolderId.HasValue)
+            {
+                return RedirectToAction(nameof(Details), new { id = parentFolderId.Value });
+            }
+
+            return RedirectToAction("Index", "Profile", new { id = profileId });
         }
 
         private async Task PopulateCreateViewDataAsync(Guid? parentFolderId, bool isCountryFolder)
