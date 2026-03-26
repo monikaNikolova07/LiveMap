@@ -204,6 +204,73 @@ namespace LiveMap.Web.Controllers
             }
         }
 
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(Guid id)
+        {
+            var folder = await folderService.GetByIdAsync(id);
+            if (folder == null)
+            {
+                return NotFound();
+            }
+
+            var currentUserId = GetCurrentUserId();
+            if (currentUserId == null || folder.Profile.UserId != currentUserId.Value)
+            {
+                return Forbid();
+            }
+
+            var parentFolderId = folder.ParentFolders.Select(pf => (Guid?)pf.FolderId).FirstOrDefault();
+            await PopulateCreateViewDataAsync(parentFolderId, !parentFolderId.HasValue);
+
+            var model = new FolderEditViewModel
+            {
+                Id = folder.Id,
+                Name = folder.Name,
+                Acssesability = await folderService.GetUploadAccessibilityAsync(folder.Id, folder.Acssesability),
+                ParentFolderId = parentFolderId,
+                ProfileId = folder.ProfileId,
+                IsCountryFolder = !parentFolderId.HasValue
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(FolderEditViewModel model)
+        {
+            var folder = await folderService.GetByIdAsync(model.Id);
+            if (folder == null)
+            {
+                return NotFound();
+            }
+
+            var currentUserId = GetCurrentUserId();
+            if (currentUserId == null || folder.Profile.UserId != currentUserId.Value)
+            {
+                return Forbid();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                await PopulateCreateViewDataAsync(model.ParentFolderId, model.IsCountryFolder);
+                return View(model);
+            }
+
+            try
+            {
+                await folderService.UpdateAsync(model.Id, model.Name, model.Acssesability);
+                return RedirectToAction(nameof(Details), new { id = model.Id });
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                await PopulateCreateViewDataAsync(model.ParentFolderId, model.IsCountryFolder);
+                return View(model);
+            }
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(Guid id, string? returnUrl = null)

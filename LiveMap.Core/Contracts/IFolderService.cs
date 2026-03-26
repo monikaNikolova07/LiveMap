@@ -20,6 +20,7 @@ namespace LiveMap.Core.Contracts
 
         Task UploadPictureAsync(Guid folderId, IFormFile file, Acssesability acssesability);
 
-        Task DeleteAsync(Guid id);
+        Task DeleteAsync(Guid id); 
+        Task UpdateAsync(Guid folderId, string name, Acssesability acssesability);
     }
 }

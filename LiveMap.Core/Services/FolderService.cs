@@ -292,5 +292,101 @@ namespace LiveMap.Core.Services
                 await CollectFoldersForDeleteAsync(subfolder.SubfolderId, foldersToDelete);
             }
         }
+
+        public async Task UpdateAsync(Guid folderId, string name, Acssesability acssesability)
+        {
+            var folder = await context.Folders
+                .FirstOrDefaultAsync(f => f.Id == folderId);
+
+            if (folder == null)
+            {
+                throw new InvalidOperationException("Folder not found.");
+            }
+
+            folder.Name = name;
+
+            var mustBePrivate = await IsInPrivateTreeAsync(folderId);
+
+            folder.Acssesability = mustBePrivate
+                ? Acssesability.Private
+                : acssesability;
+
+            await context.SaveChangesAsync();
+
+            if (folder.Acssesability == Acssesability.Private)
+            {
+                await ApplyPrivateToChildrenAsync(folder.Id);
+            }
+        }
+
+        private async Task<bool> IsInPrivateTreeAsync(Guid folderId)
+        {
+            var currentFolderId = folderId;
+
+            while (true)
+            {
+                var currentFolder = await context.Folders
+                    .FirstOrDefaultAsync(f => f.Id == currentFolderId);
+
+                if (currentFolder == null)
+                {
+                    return false;
+                }
+
+                if (currentFolder.Acssesability == Acssesability.Private)
+                {
+                    return true;
+                }
+
+                var parentLink = await context.FolderStructures
+                    .FirstOrDefaultAsync(fs => fs.SubfolderId == currentFolderId);
+
+                if (parentLink == null)
+                {
+                    return false;
+                }
+
+                currentFolderId = parentLink.FolderId;
+            }
+        }
+
+        private async Task ApplyPrivateToChildrenAsync(Guid folderId)
+        {
+            var childFolderLinks = await context.FolderStructures
+                .Where(fs => fs.FolderId == folderId)
+                .ToListAsync();
+
+            var childFolderIds = childFolderLinks
+                .Select(fs => fs.SubfolderId)
+                .ToList();
+
+            if (childFolderIds.Any())
+            {
+                var childFolders = await context.Folders
+                    .Where(f => childFolderIds.Contains(f.Id))
+                    .ToListAsync();
+
+                foreach (var childFolder in childFolders)
+                {
+                    childFolder.Acssesability = Acssesability.Private;
+                }
+            }
+
+            var pictures = await context.Pictures
+                .Where(p => p.FolderId == folderId)
+                .ToListAsync();
+
+            foreach (var picture in pictures)
+            {
+                picture.Acssesability = Acssesability.Private;
+            }
+
+            await context.SaveChangesAsync();
+
+            foreach (var childFolderId in childFolderIds)
+            {
+                await ApplyPrivateToChildrenAsync(childFolderId);
+            }
+        }
     }
 }

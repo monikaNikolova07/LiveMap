@@ -294,39 +294,51 @@ body {
   position: relative;
 }
 
-.folder-delete-form {
+.folder-card-actions {
   position: absolute;
   top: 0.75rem;
   right: 0.75rem;
+  display: flex;
+  gap: 0.45rem;
   z-index: 3;
 }
 
-.folder-delete-button {
-  width: 28px;
-  height: 28px;
+.folder-delete-form {
+  margin: 0;
+}
+
+.folder-action-button {
+  width: 30px;
+  height: 30px;
   border: none;
   border-radius: 999px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   background: rgba(15, 23, 42, 0.82);
   color: #fff;
   font-size: 1rem;
   line-height: 1;
+  text-decoration: none;
   cursor: pointer;
   opacity: 0;
   transform: scale(0.9);
   transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease;
 }
 
-.folder-delete-button:hover {
-  background: #dc2626;
-}
-
-.folder-shortcut-card:hover .folder-delete-button,
-.folder-delete-button:focus-visible {
+.folder-shortcut-card:hover .folder-action-button,
+.folder-action-button:focus-visible {
   opacity: 1;
   transform: scale(1);
+}
+
+.folder-action-button-edit:hover {
+  background: #2563eb;
+  color: #fff;
+}
+
+.folder-action-button-delete:hover {
+  background: #dc2626;
 }
 
 .folder-shortcut-link {
@@ -457,4 +469,50 @@ body {
 
 .picture-action-button-delete:hover {
   background: #dc2626;
+}
+
+.profile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  gap: 0.9rem;
+  margin: 1rem 0 1.25rem;
+}
+
+.profile-stat-card {
+  padding: 0.85rem 1rem;
+  border-radius: 18px;
+  border: 1px solid #dbe7f5;
+  background: rgba(255,255,255,0.9);
+}
+
+.profile-stat-value {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.profile-stat-label {
+  margin-top: 0.35rem;
+  font-size: 0.86rem;
+  color: #64748b;
+}
+
+@media (max-width: 575.98px) {
+  .profile-stats-grid {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+}
+
+
+.profile-stat-card-link {
+    color: inherit;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.profile-stat-card-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+    color: inherit;
 }

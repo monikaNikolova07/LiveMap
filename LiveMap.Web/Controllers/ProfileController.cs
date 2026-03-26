@@ -209,6 +209,105 @@ namespace LiveMap.Web.Controllers
             return string.IsNullOrWhiteSpace(returnUrl) ? RedirectToAction(nameof(Details), new { id }) : Redirect(returnUrl);
         }
 
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> Connections(Guid id, string type)
+        {
+            var currentUserId = GetCurrentUserId();
+
+            var profile = await context.Profiles
+                .Where(p => p.Id == id)
+                .Select(p => new
+                {
+                    p.Id,
+                    p.UserId,
+                    Username = p.User.UserName,
+                    p.Acssesability
+                })
+                .FirstOrDefaultAsync();
+
+            if (profile == null)
+            {
+                return NotFound();
+            }
+
+            var isOwnProfile = currentUserId != null && profile.UserId == currentUserId.Value;
+            if (!isOwnProfile && profile.Acssesability != Acssesability.Public)
+            {
+                return NotFound();
+            }
+
+            var normalizedType = (type ?? string.Empty).Trim().ToLowerInvariant();
+            IQueryable<ProfileConnectionItemViewModel> query;
+            string title;
+
+            switch (normalizedType)
+            {
+                case "followers":
+                    title = "Followers";
+                    query = context.UserFollowings
+                        .Where(uf => uf.FolowingId == profile.UserId)
+                        .Select(uf => new ProfileConnectionItemViewModel
+                        {
+                            ProfileId = uf.User.Profile != null ? uf.User.Profile.Id : Guid.Empty,
+                            UserId = uf.UserId,
+                            Username = uf.User.UserName ?? "Unknown user",
+                            ProfilePicture = uf.User.Profile != null ? uf.User.Profile.ProfilePicture : null,
+                            Bio = uf.User.Profile != null ? uf.User.Profile.Bio : null
+                        });
+                    break;
+
+                case "following":
+                    title = "Following";
+                    query = context.UserFollowings
+                        .Where(uf => uf.UserId == profile.UserId)
+                        .Select(uf => new ProfileConnectionItemViewModel
+                        {
+                            ProfileId = uf.Following.Profile != null ? uf.Following.Profile.Id : Guid.Empty,
+                            UserId = uf.FolowingId,
+                            Username = uf.Following.UserName ?? "Unknown user",
+                            ProfilePicture = uf.Following.Profile != null ? uf.Following.Profile.ProfilePicture : null,
+                            Bio = uf.Following.Profile != null ? uf.Following.Profile.Bio : null
+                        });
+                    break;
+
+                case "friends":
+                    title = "Friends";
+                    query = context.UserFollowings
+                        .Where(uf => uf.UserId == profile.UserId)
+                        .Where(uf => context.UserFollowings.Any(back => back.UserId == uf.FolowingId && back.FolowingId == profile.UserId))
+                        .Select(uf => new ProfileConnectionItemViewModel
+                        {
+                            ProfileId = uf.Following.Profile != null ? uf.Following.Profile.Id : Guid.Empty,
+                            UserId = uf.FolowingId,
+                            Username = uf.Following.UserName ?? "Unknown user",
+                            ProfilePicture = uf.Following.Profile != null ? uf.Following.Profile.ProfilePicture : null,
+                            Bio = uf.Following.Profile != null ? uf.Following.Profile.Bio : null
+                        });
+                    break;
+
+                default:
+                    return NotFound();
+            }
+
+            var items = await query
+                .Where(x => x.ProfileId != Guid.Empty)
+                .OrderBy(x => x.Username)
+                .ToListAsync();
+
+            var model = new ProfileConnectionsViewModel
+            {
+                ProfileId = profile.Id,
+                ProfileUsername = profile.Username ?? "Unknown user",
+                ConnectionType = normalizedType,
+                Title = title,
+                Items = items
+            };
+
+            return View(model);
+        }
+
         [HttpGet]
         public async Task<IActionResult> Notifications()
         {

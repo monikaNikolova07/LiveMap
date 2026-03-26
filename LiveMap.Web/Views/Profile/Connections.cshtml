@@ -1,0 +1,39 @@
+@model LiveMap.Web.Models.Profile.ProfileConnectionsViewModel
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<section class="mb-4">
+    <p class="section-eyebrow">Connections</p>
+    <h1 class="section-title">@Model.Title</h1>
+    <p class="text-muted">@Model.ProfileUsername's @Model.Title.ToLower()</p>
+    <a asp-action="Details" asp-route-id="@Model.ProfileId" class="btn btn-outline-secondary btn-sm mt-2">Back to profile</a>
+</section>
+
+@if (Model.Items.Any())
+{
+    <div class="row g-3">
+        @foreach (var item in Model.Items)
+        {
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body d-flex gap-3 align-items-start">
+                        <img src="@(string.IsNullOrWhiteSpace(item.ProfilePicture) ? "/images/default.jpeg" : item.ProfilePicture)"
+                             alt="@item.Username avatar"
+                             class="rounded-circle"
+                             style="width: 72px; height: 72px; object-fit: cover;" />
+                        <div class="flex-grow-1">
+                            <h5 class="mb-1">@item.Username</h5>
+                            <p class="text-muted mb-3">@(string.IsNullOrWhiteSpace(item.Bio) ? "No bio yet." : item.Bio)</p>
+                            <a asp-action="Details" asp-route-id="@item.ProfileId" class="btn btn-outline-primary btn-sm">Open profile</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="alert alert-info">No users found in this list yet.</div>
+}

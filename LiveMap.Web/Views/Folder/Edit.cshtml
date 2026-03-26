@@ -1,0 +1,52 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@model LiveMap.Web.Models.Folder.FolderEditViewModel
+
+@{
+    ViewData["Title"] = "Edit folder";
+    var accessibilities = ViewBag.Accessibilities as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var countries = ViewBag.Countries as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var isLockedToPrivate = accessibilities.Count() == 1 && accessibilities.First().Value == "Private";
+}
+
+<h2>Edit folder</h2>
+
+@if (isLockedToPrivate)
+{
+    <div class="alert alert-info">This folder is in a private folder tree, so its visibility stays private.</div>
+}
+
+<form asp-action="Edit" method="post" class="row g-3">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" />
+    <input asp-for="ParentFolderId" type="hidden" />
+    <input asp-for="ProfileId" type="hidden" />
+    <input asp-for="IsCountryFolder" type="hidden" />
+
+    <div class="col-md-6">
+        <label asp-for="Name" class="form-label">@(Model.IsCountryFolder ? "Country" : "Folder name")</label>
+        @if (Model.IsCountryFolder)
+        {
+            <select asp-for="Name" asp-items="countries" class="form-select"></select>
+        }
+        else
+        {
+            <input asp-for="Name" class="form-control" />
+        }
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-4">
+        <label asp-for="Acssesability" class="form-label">Visibility</label>
+        <select asp-for="Acssesability" asp-items="accessibilities" class="form-select"></select>
+        <span asp-validation-for="Acssesability" class="text-danger"></span>
+    </div>
+
+    <div class="col-12 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Back to folder</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

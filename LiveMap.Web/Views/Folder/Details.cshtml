@@ -29,12 +29,20 @@
                 <div class="folder-shortcut-card">
                     @if (Model.IsOwner)
                     {
-                        <form asp-action="Delete" method="post" class="folder-delete-form" onsubmit="return confirm('Are you sure you want to delete this folder?');">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="id" value="@folder.Id" />
-                            <input type="hidden" name="returnUrl" value="@Url.Action("Details", "Folder", new { id = Model.Id })" />
-                            <button type="submit" class="folder-delete-button" title="Delete folder" aria-label="Delete @folder.Name">×</button>
-                        </form>
+                        <div class="folder-card-actions">
+                            <a asp-action="Edit"
+                               asp-route-id="@folder.Id"
+                               class="folder-action-button folder-action-button-edit"
+                               title="Edit folder"
+                               aria-label="Edit @folder.Name">✎</a>
+
+                            <form asp-action="Delete" method="post" class="folder-delete-form" onsubmit="return confirm('Are you sure you want to delete this folder?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@folder.Id" />
+                                <input type="hidden" name="returnUrl" value="@Url.Action("Details", "Folder", new { id = Model.Id })" />
+                                <button type="submit" class="folder-action-button folder-action-button-delete" title="Delete folder" aria-label="Delete @folder.Name">×</button>
+                            </form>
+                        </div>
                     }
 
                     <a asp-action="Details"
