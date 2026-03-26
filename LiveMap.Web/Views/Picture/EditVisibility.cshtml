@@ -1,0 +1,41 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@model LiveMap.Web.Models.Picture.PictureEditVisibilityViewModel
+
+@{
+    ViewData["Title"] = "Edit picture visibility";
+    var accessibilities = ViewBag.Accessibilities as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
+    var isLockedToPrivate = accessibilities.Count() == 1 && accessibilities.First().Value == "Private";
+}
+
+<h2>Edit picture visibility</h2>
+
+@if (isLockedToPrivate)
+{
+    <div class="alert alert-info">This picture is in a private folder tree, so its visibility stays private.</div>
+}
+
+<div class="card shadow-sm border-0 mb-4" style="max-width: 420px; overflow:hidden;">
+    <img src="@Model.Url" alt="Picture preview" style="width:100%; height:320px; object-fit:cover;" />
+</div>
+
+<form asp-action="EditVisibility" method="post" class="row g-3">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" />
+    <input asp-for="FolderId" type="hidden" />
+    <input asp-for="Url" type="hidden" />
+
+    <div class="col-md-5">
+        <label asp-for="Acssesability" class="form-label">Visibility</label>
+        <select asp-for="Acssesability" asp-items="ViewBag.Accessibilities" class="form-select"></select>
+        <span asp-validation-for="Acssesability" class="text-danger"></span>
+    </div>
+
+    <div class="col-12 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a asp-controller="Folder" asp-action="Details" asp-route-id="@Model.FolderId" class="btn btn-outline-secondary">Back to folder</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

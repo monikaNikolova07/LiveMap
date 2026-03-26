@@ -73,9 +73,28 @@
             @foreach (var pic in Model.Pictures)
             {
                 <div class="col-md-3 col-sm-4 col-6">
-                    <div class="card shadow-sm border-0 h-100">
-                        <img src="@pic.Url" class="card-img-top" style="height:220px; object-fit:cover;" alt="Folder picture" />
-                        <div class="card-body py-2">
+                    <div class="picture-card">
+                        @if (Model.IsOwner)
+                        {
+                            <div class="picture-card-actions">
+                                <a asp-controller="Picture"
+                                   asp-action="EditVisibility"
+                                   asp-route-id="@pic.Id"
+                                   class="picture-action-button picture-action-button-edit"
+                                   title="Edit picture visibility"
+                                   aria-label="Edit visibility for picture">✎</a>
+
+                                <form asp-controller="Picture" asp-action="Delete" method="post" class="picture-delete-form" onsubmit="return confirm('Are you sure you want to delete this picture?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@pic.Id" />
+                                    <input type="hidden" name="folderId" value="@Model.Id" />
+                                    <button type="submit" class="picture-action-button picture-action-button-delete" title="Delete picture" aria-label="Delete picture">×</button>
+                                </form>
+                            </div>
+                        }
+
+                        <img src="@pic.Url" class="picture-card-image" alt="Folder picture" />
+                        <div class="picture-card-body">
                             <small class="text-muted">@(pic.Acssesability == LiveMap.Data.Models.Acssesability.FriendsOnly ? "Friends Only" : pic.Acssesability.ToString())</small>
                         </div>
                     </div>
