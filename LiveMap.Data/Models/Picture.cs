@@ -10,6 +10,8 @@ namespace LiveMap.Data.Models
 
         public string URL { get; set; } = null!;
 
+        public string? Description { get; set; }
+
         [ForeignKey(nameof(FolderId))]
         public Folder Folder { get; set; } = null!;
 

@@ -106,6 +106,7 @@ namespace LiveMap.Web.Controllers
                         Id = p.Id,
                         Url = p.URL,
                         Acssesability = p.Acssesability,
+                        Description = p.Description,
                         LikesCount = p.Likes.Count,
                         CommentsCount = p.Comments.Count,
                         IsLikedByCurrentUser = currentUserId.HasValue && p.Likes.Any(l => l.UserId == currentUserId.Value),
@@ -202,7 +203,7 @@ namespace LiveMap.Web.Controllers
 
             try
             {
-                await folderService.UploadPictureAsync(model.FolderId, model.File!, model.Acssesability);
+                await folderService.UploadPictureAsync(model.FolderId, model.File!, model.Acssesability, model.Description);
                 return RedirectToAction(nameof(Details), new { id = model.FolderId });
             }
             catch (Exception ex)

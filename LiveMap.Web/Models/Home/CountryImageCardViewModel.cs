@@ -9,6 +9,10 @@ public class CountryImageCardViewModel
     public Guid ProfileId { get; set; }
     public string Username { get; set; } = string.Empty;
     public string ProfilePicture { get; set; } = string.Empty;
+    public string? Description { get; set; }
     public int LikesCount { get; set; }
     public int CommentsCount { get; set; }
+    public bool IsLikedByCurrentUser { get; set; }
+    public bool CanInteract { get; set; }
+    public List<ExploreCommentViewModel> Comments { get; set; } = new();
 }

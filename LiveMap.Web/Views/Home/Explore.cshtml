@@ -16,70 +16,17 @@
             <div class="col-lg-5">
                 <label for="filter" class="form-label fw-semibold">Filter</label>
                 <select id="filter" name="filter" class="form-select explore-filter-select">
-                    @if (Model.SelectedFilter == ExploreFilterOptions.Newest)
-                    {
-                        <option value="@ExploreFilterOptions.Newest" selected>Newest public pictures</option>
-                    }
-                    else
-                    {
-                        <option value="@ExploreFilterOptions.Newest">Newest public pictures</option>
-                    }
-
-                    @if (Model.SelectedFilter == ExploreFilterOptions.Oldest)
-                    {
-                        <option value="@ExploreFilterOptions.Oldest" selected>Oldest public pictures</option>
-                    }
-                    else
-                    {
-                        <option value="@ExploreFilterOptions.Oldest">Oldest public pictures</option>
-                    }
-
-                    @if (Model.SelectedFilter == ExploreFilterOptions.ByUser)
-                    {
-                        <option value="@ExploreFilterOptions.ByUser" selected>Pictures by username</option>
-                    }
-                    else
-                    {
-                        <option value="@ExploreFilterOptions.ByUser">Pictures by username</option>
-                    }
-
-                    @if (Model.SelectedFilter == ExploreFilterOptions.PopularUsers)
-                    {
-                        <option value="@ExploreFilterOptions.PopularUsers" selected>Pictures from most popular users</option>
-                    }
-                    else
-                    {
-                        <option value="@ExploreFilterOptions.PopularUsers">Pictures from most popular users</option>
-                    }
-
-                    @if (Model.SelectedFilter == ExploreFilterOptions.FollowingNewest)
-                    {
-                        <option value="@ExploreFilterOptions.FollowingNewest" selected>Newest pictures from people I follow</option>
-                    }
-                    else
-                    {
-                        <option value="@ExploreFilterOptions.FollowingNewest">Newest pictures from people I follow</option>
-                    }
-
-                    @if (Model.SelectedFilter == ExploreFilterOptions.FriendsNewest)
-                    {
-                        <option value="@ExploreFilterOptions.FriendsNewest" selected>Newest pictures from my friends</option>
-                    }
-                    else
-                    {
-                        <option value="@ExploreFilterOptions.FriendsNewest">Newest pictures from my friends</option>
-                    }
+                    @if (Model.SelectedFilter == ExploreFilterOptions.Newest) { <option value="@ExploreFilterOptions.Newest" selected>Newest public pictures</option> } else { <option value="@ExploreFilterOptions.Newest">Newest public pictures</option> }
+                    @if (Model.SelectedFilter == ExploreFilterOptions.Oldest) { <option value="@ExploreFilterOptions.Oldest" selected>Oldest public pictures</option> } else { <option value="@ExploreFilterOptions.Oldest">Oldest public pictures</option> }
+                    @if (Model.SelectedFilter == ExploreFilterOptions.ByUser) { <option value="@ExploreFilterOptions.ByUser" selected>Pictures by username</option> } else { <option value="@ExploreFilterOptions.ByUser">Pictures by username</option> }
+                    @if (Model.SelectedFilter == ExploreFilterOptions.PopularUsers) { <option value="@ExploreFilterOptions.PopularUsers" selected>Pictures from most popular users</option> } else { <option value="@ExploreFilterOptions.PopularUsers">Pictures from most popular users</option> }
+                    @if (Model.SelectedFilter == ExploreFilterOptions.FollowingNewest) { <option value="@ExploreFilterOptions.FollowingNewest" selected>Newest pictures from people I follow</option> } else { <option value="@ExploreFilterOptions.FollowingNewest">Newest pictures from people I follow</option> }
+                    @if (Model.SelectedFilter == ExploreFilterOptions.FriendsNewest) { <option value="@ExploreFilterOptions.FriendsNewest" selected>Newest pictures from my friends</option> } else { <option value="@ExploreFilterOptions.FriendsNewest">Newest pictures from my friends</option> }
                 </select>
             </div>
-            <div class="col-lg-5"
-                 id="usernameContainer"
-                 style="@(Model.SelectedFilter == ExploreFilterOptions.ByUser ? "display:block;" : "display:none;")">
+            <div class="col-lg-5" id="usernameContainer" style="@(Model.SelectedFilter == ExploreFilterOptions.ByUser ? "display:block;" : "display:none;")">
                 <label for="username" class="form-label fw-semibold">Username</label>
-                <input id="username"
-                       name="username"
-                       class="form-control"
-                       value="@Model.UsernameQuery"
-                       placeholder="Enter username..." />
+                <input id="username" name="username" class="form-control" value="@Model.UsernameQuery" placeholder="Enter username..." />
             </div>
             <div class="col-lg-2 d-grid">
                 <button type="submit" class="btn btn-primary">Apply</button>
@@ -87,7 +34,7 @@
         </form>
         <div class="explore-filter-hint mt-3">
             <span class="badge rounded-pill text-bg-light">@Model.ResultsCount results</span>
-            <span class="text-muted small">Bonus: explore now supports feed filters for followed users, friends, oldest uploads and top creators.</span>
+            <span class="text-muted small">Now you can also like and comment directly from Explore.</span>
         </div>
     </div>
 </section>
@@ -108,7 +55,7 @@ else if (Model.Pictures.Any())
         {
             <div class="col-md-6 col-xl-4">
                 <div class="card h-100 shadow-sm explore-card">
-                    <img src="@picture.ImageUrl" class="card-img-top explore-image" alt="@picture.FolderName image" />
+                    <img src="@picture.ImageUrl" class="card-img-top explore-image" alt="@picture.FolderName image" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='/images/travel-placeholder.jpg';" />
                     <div class="card-body">
                         <div class="d-flex align-items-center gap-3 mb-3">
                             <img src="@(string.IsNullOrWhiteSpace(picture.ProfilePicture) ? "/images/default.jpeg" : picture.ProfilePicture)"
@@ -126,7 +73,52 @@ else if (Model.Pictures.Any())
                                 }
                             </div>
                         </div>
-                        <a asp-controller="Profile" asp-action="Details" asp-route-id="@picture.ProfileId" class="btn btn-outline-primary">Open profile</a>
+
+                        @if (!string.IsNullOrWhiteSpace(picture.Description))
+                        {
+                            <p class="mb-3">@picture.Description</p>
+                        }
+
+                        @if (picture.CanInteract)
+                        {
+                            <div class="d-flex gap-2 mb-3">
+                                <form asp-controller="Picture" asp-action="ToggleLike" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@picture.PictureId" />
+                                    <input type="hidden" name="folderId" value="@picture.FolderId" />
+                                    <button type="submit" class="btn btn-sm @(picture.IsLikedByCurrentUser ? "btn-danger" : "btn-outline-danger")">♥</button>
+                                </form>
+                                <a class="btn btn-sm btn-outline-secondary" href="#explore-comments-@picture.PictureId">💬</a>
+                            </div>
+
+                            <form asp-controller="Picture" asp-action="AddComment" method="post" class="mb-3" id="explore-comments-@picture.PictureId">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@picture.PictureId" />
+                                <input type="hidden" name="folderId" value="@picture.FolderId" />
+                                <div class="input-group input-group-sm">
+                                    <input type="text" name="content" class="form-control" maxlength="500" placeholder="Write a comment..." />
+                                    <button type="submit" class="btn btn-outline-primary">Post</button>
+                                </div>
+                            </form>
+                        }
+
+                        @if (picture.Comments.Any())
+                        {
+                            <div class="small mb-3">
+                                @foreach (var comment in picture.Comments)
+                                {
+                                    <div class="border rounded p-2 mb-2 bg-light-subtle">
+                                        <div class="fw-semibold">@comment.Username</div>
+                                        <div>@comment.Content</div>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <div class="d-flex gap-2">
+                            <a asp-controller="Profile" asp-action="Details" asp-route-id="@picture.ProfileId" class="btn btn-outline-primary">Open profile</a>
+                            <a asp-controller="Folder" asp-action="Details" asp-route-id="@picture.FolderId" class="btn btn-outline-secondary">Open folder</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -152,7 +144,6 @@ else
         }
 
         toggleUsernameField();
-
         filterSelect.addEventListener("change", toggleUsernameField);
     </script>
 }

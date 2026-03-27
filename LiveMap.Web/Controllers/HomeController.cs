@@ -1,4 +1,6 @@
+
 using System.Diagnostics;
+using System.Security.Claims;
 using LiveMap.Data;
 using LiveMap.Data.Models;
 using LiveMap.Web.Helpers;
@@ -6,8 +8,6 @@ using LiveMap.Web.Models;
 using LiveMap.Web.Models.Home;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
-using System.Security.Claims;
 
 namespace LiveMap.Web.Controllers
 {
@@ -41,7 +41,6 @@ namespace LiveMap.Web.Controllers
             return View(model);
         }
 
-
         [HttpGet]
         public async Task<IActionResult> Explore(string filter = ExploreFilterOptions.Newest, string? username = null)
         {
@@ -49,13 +48,19 @@ namespace LiveMap.Web.Controllers
             var normalizedFilter = NormalizeFilter(filter);
             var normalizedUsername = (username ?? string.Empty).Trim();
 
-            var publicPictures = _context.Pictures
+            var pictures = await _context.Pictures
+                .Include(p => p.Folder)
+                    .ThenInclude(f => f.Profile)
+                        .ThenInclude(pr => pr.User)
+                .Include(p => p.Likes)
+                .Include(p => p.Comments)
+                    .ThenInclude(c => c.User)
                 .Where(p => p.Acssesability == Acssesability.Public)
                 .Where(p => p.Folder.Acssesability == Acssesability.Public)
-                .Where(p => p.Folder.Profile.Acssesability == Acssesability.Public);
+                .Where(p => p.Folder.Profile.Acssesability == Acssesability.Public)
+                .ToListAsync();
 
-            IQueryable<ExplorePictureViewModel>? pictureQuery = null;
-            List<ExplorePictureViewModel>? precomputedPictures = null;
+            IEnumerable<Picture> filteredPictures = pictures;
             var model = new ExploreFeedViewModel
             {
                 SelectedFilter = normalizedFilter,
@@ -67,9 +72,7 @@ namespace LiveMap.Web.Controllers
                 case ExploreFilterOptions.Oldest:
                     model.Heading = "Oldest public pictures";
                     model.Description = "See the oldest public uploads first across all public profiles.";
-                    pictureQuery = publicPictures
-                        .OrderBy(p => p.CreatedOn)
-                        .Select(ToExplorePicture());
+                    filteredPictures = filteredPictures.OrderBy(p => p.CreatedOn);
                     break;
 
                 case ExploreFilterOptions.ByUser:
@@ -80,40 +83,19 @@ namespace LiveMap.Web.Controllers
                         ? "Type a username and get all their public pictures from newest to oldest."
                         : "These are the public uploads for the selected user, ordered from newest to oldest.";
 
-                    pictureQuery = publicPictures
+                    filteredPictures = filteredPictures
                         .Where(p => !string.IsNullOrWhiteSpace(normalizedUsername)
-                            && p.Folder.Profile.User.UserName != null
-                            && EF.Functions.Like(p.Folder.Profile.User.UserName, $"%{normalizedUsername}%"))
-                        .OrderByDescending(p => p.CreatedOn)
-                        .Select(ToExplorePicture());
+                            && !string.IsNullOrWhiteSpace(p.Folder.Profile.User.UserName)
+                            && p.Folder.Profile.User.UserName.Contains(normalizedUsername, StringComparison.OrdinalIgnoreCase))
+                        .OrderByDescending(p => p.CreatedOn);
                     break;
 
                 case ExploreFilterOptions.PopularUsers:
                     model.Heading = "Pictures from the most popular users";
                     model.Description = "Public pictures from creators with the highest followers count appear first.";
-                    pictureQuery = publicPictures
-                        .Select(p => new
-                        {
-                            Picture = p,
-                            FollowersCount = _context.UserFollowings.Count(uf => uf.FolowingId == p.Folder.Profile.UserId),
-                            LikesCount = p.Likes.Count,
-                            CommentsCount = p.Comments.Count
-                        })
-                        .OrderByDescending(x => x.FollowersCount)
-                        .ThenByDescending(x => x.Picture.CreatedOn)
-                        .Select(x => new ExplorePictureViewModel
-                        {
-                            PictureId = x.Picture.Id,
-                            ImageUrl = x.Picture.URL,
-                            ProfileId = x.Picture.Folder.Profile.Id,
-                            Username = x.Picture.Folder.Profile.User.UserName ?? "Unknown creator",
-                            ProfilePicture = x.Picture.Folder.Profile.ProfilePicture ?? string.Empty,
-                            FolderName = x.Picture.Folder.Name,
-                            CreatedOn = x.Picture.CreatedOn,
-                            FollowersCount = x.FollowersCount,
-                            LikesCount = x.Picture.Likes.Count,
-                            CommentsCount = x.Picture.Comments.Count
-                        });
+                    filteredPictures = filteredPictures
+                        .OrderByDescending(p => _context.UserFollowings.Count(uf => uf.FolowingId == p.Folder.Profile.UserId))
+                        .ThenByDescending(p => p.CreatedOn);
                     break;
 
                 case ExploreFilterOptions.FollowingNewest:
@@ -123,14 +105,18 @@ namespace LiveMap.Web.Controllers
                     if (currentUserId == null)
                     {
                         model.RequiresLoginNotice = true;
-                        precomputedPictures = new List<ExplorePictureViewModel>();
+                        filteredPictures = Enumerable.Empty<Picture>();
                     }
                     else
                     {
-                        pictureQuery = publicPictures
-                            .Where(p => _context.UserFollowings.Any(uf => uf.UserId == currentUserId.Value && uf.FolowingId == p.Folder.Profile.UserId))
-                            .OrderByDescending(p => p.CreatedOn)
-                            .Select(ToExplorePicture());
+                        var followingIds = await _context.UserFollowings
+                            .Where(uf => uf.UserId == currentUserId.Value)
+                            .Select(uf => uf.FolowingId)
+                            .ToListAsync();
+
+                        filteredPictures = filteredPictures
+                            .Where(p => followingIds.Contains(p.Folder.Profile.UserId))
+                            .OrderByDescending(p => p.CreatedOn);
                     }
                     break;
 
@@ -141,34 +127,47 @@ namespace LiveMap.Web.Controllers
                     if (currentUserId == null)
                     {
                         model.RequiresLoginNotice = true;
-                        precomputedPictures = new List<ExplorePictureViewModel>();
+                        filteredPictures = Enumerable.Empty<Picture>();
                     }
                     else
                     {
-                        pictureQuery = publicPictures
-                            .Where(p => _context.UserFollowings.Any(uf => uf.UserId == currentUserId.Value && uf.FolowingId == p.Folder.Profile.UserId)
-                                     && _context.UserFollowings.Any(back => back.UserId == p.Folder.Profile.UserId && back.FolowingId == currentUserId.Value))
-                            .OrderByDescending(p => p.CreatedOn)
-                            .Select(ToExplorePicture());
+                        var followingIds = await _context.UserFollowings
+                            .Where(uf => uf.UserId == currentUserId.Value)
+                            .Select(uf => uf.FolowingId)
+                            .ToListAsync();
+
+                        var followerIds = await _context.UserFollowings
+                            .Where(uf => uf.FolowingId == currentUserId.Value)
+                            .Select(uf => uf.UserId)
+                            .ToListAsync();
+
+                        var friendIds = followingIds.Intersect(followerIds).ToHashSet();
+                        filteredPictures = filteredPictures
+                            .Where(p => friendIds.Contains(p.Folder.Profile.UserId))
+                            .OrderByDescending(p => p.CreatedOn);
                     }
                     break;
 
                 default:
                     model.Heading = "Newest public pictures";
                     model.Description = "Browse the latest uploaded public images and open the creator profiles.";
-                    pictureQuery = publicPictures
-                        .OrderByDescending(p => p.CreatedOn)
-                        .Select(ToExplorePicture());
+                    filteredPictures = filteredPictures.OrderByDescending(p => p.CreatedOn);
                     break;
             }
 
-            model.Pictures = precomputedPictures ?? await pictureQuery!.Take(48).ToListAsync();
+            model.Pictures = filteredPictures
+                .Take(48)
+                .Select(p => MapExplorePicture(p, currentUserId))
+                .ToList();
+
             return View(model);
         }
 
         [HttpGet]
         public async Task<IActionResult> Country(string country)
         {
+            var currentUserId = GetCurrentUserId();
+
             if (!CountryUiHelper.TryParseCountry(country, out var selectedCountry))
             {
                 return RedirectToAction(nameof(Index));
@@ -180,22 +179,16 @@ namespace LiveMap.Web.Controllers
                 CountryUiHelper.NormalizeKey(CountryUiHelper.GetDisplayName(selectedCountry))
             };
 
-            var images = await _context.Pictures
+            var pictures = await _context.Pictures
+                .Include(p => p.Folder)
+                    .ThenInclude(f => f.Profile)
+                        .ThenInclude(pr => pr.User)
+                .Include(p => p.Likes)
+                .Include(p => p.Comments)
+                    .ThenInclude(c => c.User)
                 .Where(p => p.Acssesability == Acssesability.Public)
-                .Select(p => new
-                {
-                    p.Id,
-                    p.URL,
-                    p.FolderId,
-                    FolderName = p.Folder.Name,
-                    FolderAccessibility = p.Folder.Acssesability,
-                    ProfileId = p.Folder.ProfileId,
-                    ProfileAccessibility = p.Folder.Profile.Acssesability,
-                    Username = p.Folder.Profile.User.UserName,
-                    ProfilePicture = p.Folder.Profile.ProfilePicture,
-                    LikesCount = p.Likes.Count,
-                    CommentsCount = p.Comments.Count
-                })
+                .Where(p => p.Folder.Acssesability == Acssesability.Public)
+                .Where(p => p.Folder.Profile.Acssesability == Acssesability.Public)
                 .ToListAsync();
 
             var gallery = new CountryGalleryViewModel
@@ -203,21 +196,32 @@ namespace LiveMap.Web.Controllers
                 CountryValue = selectedCountry.ToString(),
                 CountryName = CountryUiHelper.GetDisplayName(selectedCountry),
                 CountryFlagEmoji = CountryUiHelper.GetFlagEmoji(selectedCountry),
-                Images = images
-                    .Where(image => image.FolderAccessibility == Acssesability.Public)
-                    .Where(image => image.ProfileAccessibility == Acssesability.Public)
-                    .Where(image => normalizedKeys.Contains(CountryUiHelper.NormalizeKey(image.FolderName ?? string.Empty)))
-                    .Select(image => new CountryImageCardViewModel
+                Images = pictures
+                    .Where(p => normalizedKeys.Contains(CountryUiHelper.NormalizeKey(p.Folder.Name ?? string.Empty)))
+                    .Select(p => new CountryImageCardViewModel
                     {
-                        PictureId = image.Id,
-                        ImageUrl = image.URL,
-                        FolderId = image.FolderId,
-                        FolderName = image.FolderName ?? string.Empty,
-                        ProfileId = image.ProfileId,
-                        Username = image.Username ?? "Unknown creator",
-                        ProfilePicture = image.ProfilePicture ?? string.Empty,
-                        LikesCount = image.LikesCount,
-                        CommentsCount = image.CommentsCount
+                        PictureId = p.Id,
+                        ImageUrl = p.URL,
+                        FolderId = p.FolderId,
+                        FolderName = p.Folder.Name,
+                        ProfileId = p.Folder.ProfileId,
+                        Username = p.Folder.Profile.User.UserName ?? "Unknown creator",
+                        ProfilePicture = p.Folder.Profile.ProfilePicture ?? string.Empty,
+                        Description = p.Description,
+                        LikesCount = p.Likes.Count,
+                        CommentsCount = p.Comments.Count,
+                        IsLikedByCurrentUser = currentUserId.HasValue && p.Likes.Any(l => l.UserId == currentUserId.Value),
+                        CanInteract = currentUserId.HasValue && p.Folder.Profile.UserId != currentUserId.Value,
+                        Comments = p.Comments
+                            .OrderByDescending(c => c.CreatedOn)
+                            .Take(3)
+                            .Select(c => new ExploreCommentViewModel
+                            {
+                                Username = c.User.UserName ?? "Unknown user",
+                                Content = c.Content,
+                                CreatedOn = c.CreatedOn
+                            })
+                            .ToList()
                     })
                     .ToList()
             };
@@ -236,6 +240,37 @@ namespace LiveMap.Web.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
+        private ExplorePictureViewModel MapExplorePicture(Picture picture, Guid? currentUserId)
+        {
+            return new ExplorePictureViewModel
+            {
+                PictureId = picture.Id,
+                FolderId = picture.FolderId,
+                ImageUrl = picture.URL,
+                ProfileId = picture.Folder.Profile.Id,
+                Username = picture.Folder.Profile.User.UserName ?? "Unknown creator",
+                ProfilePicture = picture.Folder.Profile.ProfilePicture ?? string.Empty,
+                FolderName = picture.Folder.Name,
+                Description = picture.Description,
+                CreatedOn = picture.CreatedOn,
+                FollowersCount = _context.UserFollowings.Count(uf => uf.FolowingId == picture.Folder.Profile.UserId),
+                LikesCount = picture.Likes.Count,
+                CommentsCount = picture.Comments.Count,
+                IsLikedByCurrentUser = currentUserId.HasValue && picture.Likes.Any(l => l.UserId == currentUserId.Value),
+                CanInteract = currentUserId.HasValue && picture.Folder.Profile.UserId != currentUserId.Value,
+                Comments = picture.Comments
+                    .OrderByDescending(c => c.CreatedOn)
+                    .Take(3)
+                    .Select(c => new ExploreCommentViewModel
+                    {
+                        Username = c.User.UserName ?? "Unknown user",
+                        Content = c.Content,
+                        CreatedOn = c.CreatedOn
+                    })
+                    .ToList()
+            };
+        }
+
         private Guid? GetCurrentUserId()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -252,23 +287,6 @@ namespace LiveMap.Web.Controllers
                 ExploreFilterOptions.FollowingNewest => ExploreFilterOptions.FollowingNewest,
                 ExploreFilterOptions.FriendsNewest => ExploreFilterOptions.FriendsNewest,
                 _ => ExploreFilterOptions.Newest
-            };
-        }
-
-        private static Expression<Func<Picture, ExplorePictureViewModel>> ToExplorePicture()
-        {
-            return p => new ExplorePictureViewModel
-            {
-                PictureId = p.Id,
-                ImageUrl = p.URL,
-                ProfileId = p.Folder.Profile.Id,
-                Username = p.Folder.Profile.User.UserName ?? "Unknown creator",
-                ProfilePicture = p.Folder.Profile.ProfilePicture ?? string.Empty,
-                FolderName = p.Folder.Name,
-                CreatedOn = p.CreatedOn,
-                FollowersCount = 0,
-                LikesCount = p.Likes.Count,
-                CommentsCount = p.Comments.Count
             };
         }
     }

@@ -101,12 +101,17 @@
                             </div>
                         }
 
-                        <img src="@pic.Url" class="picture-card-image" alt="Folder picture" />
+                        <img src="@pic.Url" class="picture-card-image" alt="Folder picture" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='/images/travel-placeholder.jpg';" />
                         <div class="picture-card-body">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <small class="text-muted">@(pic.Acssesability == LiveMap.Data.Models.Acssesability.FriendsOnly ? "Friends Only" : pic.Acssesability.ToString())</small>
                                 <div class="text-muted small">♥ @pic.LikesCount · 💬 @pic.CommentsCount</div>
                             </div>
+
+                            @if (!string.IsNullOrWhiteSpace(pic.Description))
+                            {
+                                <p class="mb-3">@pic.Description</p>
+                            }
 
                             @if (pic.CanInteract)
                             {

@@ -43,5 +43,32 @@
     "emailConfirmed": true,
     "firstName": "Nasko",
     "lastName": "Demo"
+  },
+  {
+    "id": "88888888-8888-8888-8888-888888888888",
+    "userName": "didi_travel",
+    "email": "didi@livemap.com",
+    "password": "Didi.07",
+    "emailConfirmed": true,
+    "firstName": "Diana",
+    "lastName": "Travel"
+  },
+  {
+    "id": "aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb",
+    "userName": "krasi_routes",
+    "email": "krasi@livemap.com",
+    "password": "Krasi.07",
+    "emailConfirmed": true,
+    "firstName": "Krasi",
+    "lastName": "Routes"
+  },
+  {
+    "id": "cccccccc-1111-2222-3333-dddddddddddd",
+    "userName": "maria_world",
+    "email": "maria@livemap.com",
+    "password": "Maria.07",
+    "emailConfirmed": true,
+    "firstName": "Maria",
+    "lastName": "World"
   }
 ]

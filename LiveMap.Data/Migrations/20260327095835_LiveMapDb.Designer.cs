@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LiveMap.Data.Migrations
 {
     [DbContext(typeof(LiveMapDbContext))]
-    [Migration("20260327073219_LiveMapDb")]
+    [Migration("20260327095835_LiveMapDb")]
     partial class LiveMapDb
     {
         /// <inheritdoc />
@@ -77,6 +77,10 @@ namespace LiveMap.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<Guid>("FolderId")
                         .HasColumnType("uniqueidentifier");

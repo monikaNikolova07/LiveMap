@@ -14,6 +14,9 @@ namespace LiveMap.Data.Configurations
                 .IsRequired()
                 .HasMaxLength(500);
 
+            builder.Property(p => p.Description)
+                .HasMaxLength(1000);
+
             builder.Property(p => p.Acssesability)
                 .IsRequired();
 

@@ -23,6 +23,7 @@ namespace LiveMap.Web.Models.Folder
         public Guid Id { get; set; }
         public string Url { get; set; } = string.Empty;
         public Acssesability Acssesability { get; set; }
+        public string? Description { get; set; }
         public int LikesCount { get; set; }
         public int CommentsCount { get; set; }
         public bool IsLikedByCurrentUser { get; set; }
@@ -53,6 +54,9 @@ namespace LiveMap.Web.Models.Folder
 
         [Required]
         public IFormFile? File { get; set; }
+
+        [StringLength(1000)]
+        public string? Description { get; set; }
 
         public Acssesability Acssesability { get; set; } = Acssesability.Public;
     }

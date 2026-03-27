@@ -201,7 +201,7 @@ namespace LiveMap.Core.Services
                 .ToListAsync();
         }
 
-        public async Task UploadPictureAsync(Guid folderId, IFormFile file, Acssesability acssesability)
+        public async Task UploadPictureAsync(Guid folderId, IFormFile file, Acssesability acssesability, string? description)
         {
             var folder = await context.Folders.FirstOrDefaultAsync(f => f.Id == folderId);
             if (folder == null)
@@ -243,6 +243,7 @@ namespace LiveMap.Core.Services
                 Id = Guid.NewGuid(),
                 FolderId = folderId,
                 URL = uploadResult.SecureUrl?.ToString() ?? string.Empty,
+                Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim(),
                 Acssesability = await GetUploadAccessibilityAsync(folderId, acssesability),
                 CreatedOn = DateTime.UtcNow
             };

@@ -227,10 +227,14 @@ namespace LiveMap.Web.Controllers
 
         private IActionResult RedirectBack(Guid fallbackFolderId)
         {
-            var returnUrl = Request.Headers.Referer.ToString();
-            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            var referer = Request.Headers.Referer.ToString();
+            if (!string.IsNullOrWhiteSpace(referer) && Uri.TryCreate(referer, UriKind.Absolute, out var refererUri))
             {
-                return Redirect(returnUrl);
+                var localPath = refererUri.PathAndQuery + refererUri.Fragment;
+                if (Url.IsLocalUrl(localPath))
+                {
+                    return Redirect(localPath);
+                }
             }
 
             return RedirectToAction("Details", "Folder", new { id = fallbackFolderId });

@@ -217,6 +217,7 @@ namespace LiveMap.Data.SeedData
                 {
                     Id = pictureId,
                     URL = pictureData.Url,
+                    Description = string.IsNullOrWhiteSpace(pictureData.Description) ? null : pictureData.Description.Trim(),
                     FolderId = folderId,
                     Acssesability = ParseAccessibility(pictureData.Acssesability)
                 };
@@ -453,6 +454,7 @@ namespace LiveMap.Data.SeedData
             public string Id { get; set; } = null!;
             public string Url { get; set; } = null!;
             public string FolderId { get; set; } = null!;
+            public string? Description { get; set; }
             public string? Acssesability { get; set; }
         }
 

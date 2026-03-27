@@ -18,7 +18,7 @@ namespace LiveMap.Core.Contracts
 
         Task<Acssesability> GetUploadAccessibilityAsync(Guid folderId, Acssesability requestedAccessibility);
 
-        Task UploadPictureAsync(Guid folderId, IFormFile file, Acssesability acssesability);
+        Task UploadPictureAsync(Guid folderId, IFormFile file, Acssesability acssesability, string? description);
 
         Task DeleteAsync(Guid id); 
         Task UpdateAsync(Guid folderId, string name, Acssesability acssesability);

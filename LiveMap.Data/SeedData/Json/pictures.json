@@ -1,38 +1,114 @@
 [
   {
     "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-    "url": "https://p1.elle.bg/p/a/pax-218460-1140x0.jpg",
+    "url": "/images/seed/italy/italy-1.jpg",
     "folderId": "77777777-7777-7777-7777-777777777777",
+    "description": "Класически италиански кадър с топла атмосфера.",
     "acssesability": "Public"
   },
   {
     "id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
-    "url": "https://p1.elle.bg/p/a/pax-218460-1140x0.jpg",
-    "folderId": "88888888-8888-8888-8888-888888888888",
-    "acssesability": "FriendsOnly"
+    "url": "/images/seed/italy/italy-2.jpg",
+    "folderId": "77777777-7777-7777-7777-777777777777",
+    "description": "Градска разходка из Италия с усещане за ваканция.",
+    "acssesability": "Public"
   },
   {
     "id": "cccccccc-cccc-cccc-cccc-cccccccccccc",
-    "url": "https://p1.elle.bg/p/a/pax-218460-1140x0.jpg",
+    "url": "/images/seed/rome/rome-1.jpg",
+    "folderId": "88888888-8888-8888-8888-888888888888",
+    "description": "Уличка в Рим с типичен местен чар.",
+    "acssesability": "Public"
+  },
+  {
+    "id": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+    "url": "/images/seed/france/france-1.jpg",
     "folderId": "99999999-9999-9999-9999-999999999999",
+    "description": "Френска елегантност и спокойна градска атмосфера.",
     "acssesability": "Public"
   },
   {
-    "id": "18181818-1818-1818-1818-181818181818",
-    "url": "/uploads/3b99186e-e4c4-47fa-929c-8aebafd30237_image5.jpeg",
-    "folderId": "15151515-1515-1515-1515-151515151515",
+    "id": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+    "url": "/images/seed/france/france-2.jpg",
+    "folderId": "99999999-9999-9999-9999-999999999999",
+    "description": "Романтичен кадър от Франция с меко дневно осветление.",
     "acssesability": "Public"
   },
   {
-    "id": "19191919-1919-1919-1919-191919191919",
-    "url": "/uploads/d88df14e-3651-4284-ae13-11f972e194ae_image5.jpeg",
-    "folderId": "16161616-1616-1616-1616-161616161616",
+    "id": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+    "url": "/images/seed/paris/paris-1.jpg",
+    "folderId": "18181818-1818-1818-1818-181818181818",
+    "description": "Гледка от Париж, подходяща за пътешественически спомен.",
     "acssesability": "Public"
   },
   {
-    "id": "20202020-2020-2020-2020-202020202020",
-    "url": "/uploads/ec0fe495-10e6-4c90-813a-2c0d2a06fd2f_Screenshot 2026-03-19 092419.png",
-    "folderId": "17171717-1717-1717-1717-171717171717",
+    "id": "30303030-3030-3030-3030-303030303030",
+    "url": "/images/seed/bulgaria/bulgaria-1.jpg",
+    "folderId": "19191919-1919-1919-1919-191919191919",
+    "description": "Красив български пейзаж, уловен в спокоен момент.",
+    "acssesability": "Public"
+  },
+  {
+    "id": "31313131-3131-3131-3131-313131313131",
+    "url": "/images/seed/bulgaria/bulgaria-2.jpg",
+    "folderId": "19191919-1919-1919-1919-191919191919",
+    "description": "Още един кадър от България с автентично настроение.",
+    "acssesability": "Public"
+  },
+  {
+    "id": "32323232-3232-3232-3232-323232323232",
+    "url": "/images/seed/sofia/sofia-1.jpg",
+    "folderId": "20202020-2020-2020-2020-202020202020",
+    "description": "Градски момент от София с приятна светлина.",
+    "acssesability": "Public"
+  },
+  {
+    "id": "33333333-aaaa-bbbb-cccc-333333333333",
+    "url": "/images/seed/germany/germany-1.jpg",
+    "folderId": "21212121-aaaa-bbbb-cccc-212121212121",
+    "description": "Подредена градска сцена от Германия.",
+    "acssesability": "Public"
+  },
+  {
+    "id": "34343434-3434-3434-3434-343434343434",
+    "url": "/images/seed/germany/germany-2.jpg",
+    "folderId": "21212121-aaaa-bbbb-cccc-212121212121",
+    "description": "Ежедневен, но много красив кадър от Германия.",
+    "acssesability": "Public"
+  },
+  {
+    "id": "35353535-3535-3535-3535-353535353535",
+    "url": "/images/seed/berlin/berlin-1.jpg",
+    "folderId": "22222222-aaaa-bbbb-cccc-222222222222",
+    "description": "Берлинска атмосфера и модерен градски ритъм.",
+    "acssesability": "Public"
+  },
+  {
+    "id": "36363636-3636-3636-3636-363636363636",
+    "url": "/images/seed/china/china-1.jpg",
+    "folderId": "23232323-aaaa-bbbb-cccc-232323232323",
+    "description": "Цветен и впечатляващ кадър от Китай.",
+    "acssesability": "Public"
+  },
+  {
+    "id": "37373737-3737-3737-3737-373737373737",
+    "url": "/images/seed/beijing/beijing-1.jpg",
+    "folderId": "24242424-aaaa-bbbb-cccc-242424242424",
+    "description": "Градски кадър от Пекин с характерна визия.",
+    "acssesability": "Public"
+  },
+  {
+    "id": "38383838-3838-3838-3838-383838383838",
+    "url": "/images/seed/argentina/argentina-1.jpg",
+    "folderId": "25252525-aaaa-bbbb-cccc-252525252525",
+    "description": "Жива атмосфера и енергия от Аржентина.",
+    "acssesability": "Public"
+  },
+  {
+    "id": "39393939-3939-3939-3939-393939393939",
+    "url": "/images/seed/buenos-aires/buenos-aires-1.jpg",
+    "folderId": "26262626-aaaa-bbbb-cccc-262626262626",
+    "description": "Усещане за Буенос Айрес и неговия градски чар.",
     "acssesability": "Public"
   }
 ]
