@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LiveMap.Data.Migrations
 {
     [DbContext(typeof(LiveMapDbContext))]
-    [Migration("20260327095835_LiveMapDb")]
+    [Migration("20260327112643_LiveMapDb")]
     partial class LiveMapDb
     {
         /// <inheritdoc />
@@ -246,6 +246,33 @@ namespace LiveMap.Data.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("LiveMap.Data.Models.UserCountryMapColor", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ColorHex")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Country")
+                        .IsUnique();
+
+                    b.ToTable("UserCountryMapColors");
                 });
 
             modelBuilder.Entity("LiveMap.Data.Models.UserFollowing", b =>
@@ -488,6 +515,17 @@ namespace LiveMap.Data.Migrations
                         .WithOne("Profile")
                         .HasForeignKey("LiveMap.Data.Models.Profile", "UserId")
                         .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("LiveMap.Data.Models.UserCountryMapColor", b =>
+                {
+                    b.HasOne("LiveMap.Data.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");

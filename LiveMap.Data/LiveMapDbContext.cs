@@ -18,6 +18,7 @@ namespace LiveMap.Data
         public DbSet<PictureComment> PictureComments { get; set; } = null!;
         public DbSet<Profile> Profiles { get; set; } = null!;
         public DbSet<UserFollowing> UserFollowings { get; set; } = null!;
+        public DbSet<UserCountryMapColor> UserCountryMapColors { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

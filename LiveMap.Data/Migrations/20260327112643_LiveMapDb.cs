@@ -179,6 +179,26 @@ namespace LiveMap.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "UserCountryMapColors",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Country = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    ColorHex = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserCountryMapColors", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserCountryMapColors_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "UserFollowings",
                 columns: table => new
                 {
@@ -389,6 +409,12 @@ namespace LiveMap.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_UserCountryMapColors_UserId_Country",
+                table: "UserCountryMapColors",
+                columns: new[] { "UserId", "Country" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UserFollowings_FolowingId",
                 table: "UserFollowings",
                 column: "FolowingId");
@@ -420,6 +446,9 @@ namespace LiveMap.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "PictureLikes");
+
+            migrationBuilder.DropTable(
+                name: "UserCountryMapColors");
 
             migrationBuilder.DropTable(
                 name: "UserFollowings");
