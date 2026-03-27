@@ -105,7 +105,22 @@ namespace LiveMap.Web.Controllers
                     {
                         Id = p.Id,
                         Url = p.URL,
-                        Acssesability = p.Acssesability
+                        Acssesability = p.Acssesability,
+                        LikesCount = p.Likes.Count,
+                        CommentsCount = p.Comments.Count,
+                        IsLikedByCurrentUser = currentUserId.HasValue && p.Likes.Any(l => l.UserId == currentUserId.Value),
+                        CanInteract = currentUserId.HasValue && !isOwner,
+                        Comments = p.Comments
+                            .OrderByDescending(c => c.CreatedOn)
+                            .Take(5)
+                            .Select(c => new PictureCommentItemViewModel
+                            {
+                                Id = c.Id,
+                                Username = c.User.UserName ?? "Unknown user",
+                                Content = c.Content,
+                                CreatedOn = c.CreatedOn
+                            })
+                            .ToList()
                     })
                     .ToList(),
                 Subfolders = folder.Subfolders

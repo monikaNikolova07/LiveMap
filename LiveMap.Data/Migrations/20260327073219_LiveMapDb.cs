@@ -262,6 +262,56 @@ namespace LiveMap.Data.Migrations
                         principalColumn: "Id");
                 });
 
+            migrationBuilder.CreateTable(
+                name: "PictureComments",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Content = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    PictureId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PictureComments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PictureComments_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_PictureComments_Pictures_PictureId",
+                        column: x => x.PictureId,
+                        principalTable: "Pictures",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PictureLikes",
+                columns: table => new
+                {
+                    PictureId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PictureLikes", x => new { x.PictureId, x.UserId });
+                    table.ForeignKey(
+                        name: "FK_PictureLikes_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_PictureLikes_Pictures_PictureId",
+                        column: x => x.PictureId,
+                        principalTable: "Pictures",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -312,6 +362,21 @@ namespace LiveMap.Data.Migrations
                 column: "SubfolderId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PictureComments_PictureId",
+                table: "PictureComments",
+                column: "PictureId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PictureComments_UserId",
+                table: "PictureComments",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PictureLikes_UserId",
+                table: "PictureLikes",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Pictures_FolderId",
                 table: "Pictures",
                 column: "FolderId");
@@ -350,13 +415,19 @@ namespace LiveMap.Data.Migrations
                 name: "FolderStructures");
 
             migrationBuilder.DropTable(
-                name: "Pictures");
+                name: "PictureComments");
+
+            migrationBuilder.DropTable(
+                name: "PictureLikes");
 
             migrationBuilder.DropTable(
                 name: "UserFollowings");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "Pictures");
 
             migrationBuilder.DropTable(
                 name: "Folders");

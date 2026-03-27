@@ -10,5 +10,7 @@ namespace LiveMap.Web.Models.Home
         public string FolderName { get; set; } = string.Empty;
         public DateTime CreatedOn { get; set; }
         public int FollowersCount { get; set; }
+        public int LikesCount { get; set; }
+        public int CommentsCount { get; set; }
     }
 }

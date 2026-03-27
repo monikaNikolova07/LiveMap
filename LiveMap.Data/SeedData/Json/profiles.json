@@ -26,5 +26,26 @@
     "profilePicture": "/images/default.jpeg",
     "bio": "Тест профил 4.",
     "acssesability": "Public"
+  },
+  {
+    "id": "12121212-1212-1212-1212-121212121212",
+    "userId": "55555555-5555-5555-5555-555555555555",
+    "profilePicture": "/images/default.jpeg",
+    "bio": "Почитател на градските разходки и архитектурата.",
+    "acssesability": "Public"
+  },
+  {
+    "id": "13131313-1313-1313-1313-131313131313",
+    "userId": "66666666-6666-6666-6666-666666666666",
+    "profilePicture": "/images/default.jpeg",
+    "bio": "Обича морски пътувания и летни спомени.",
+    "acssesability": "Public"
+  },
+  {
+    "id": "14141414-1414-1414-1414-141414141414",
+    "userId": "77777777-7777-7777-7777-777777777777",
+    "profilePicture": "/images/default.jpeg",
+    "bio": "Събира снимки от планини и красиви гледки.",
+    "acssesability": "Public"
   }
 ]

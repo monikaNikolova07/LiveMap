@@ -1,4 +1,4 @@
-﻿using LiveMap.Data.Models;
+using LiveMap.Data.Models;
 using LiveMap.Data;
 using Microsoft.AspNetCore.Mvc;
 using LiveMap.Web.Models.Picture;
@@ -23,6 +23,8 @@ namespace LiveMap.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
+            var currentUserId = GetCurrentUserId();
+
             var pictures = await context.Pictures
                 .Select(p => new PictureViewModel
                 {
@@ -30,13 +32,15 @@ namespace LiveMap.Web.Controllers
                     URL = p.URL,
                     FolderId = p.FolderId,
                     FolderName = p.Folder.Name,
-                    Acssesability = p.Acssesability
+                    Acssesability = p.Acssesability,
+                    LikesCount = p.Likes.Count,
+                    CommentsCount = p.Comments.Count,
+                    IsLikedByCurrentUser = currentUserId.HasValue && p.Likes.Any(l => l.UserId == currentUserId.Value)
                 })
                 .ToListAsync();
 
             return View(pictures);
         }
-
 
         public async Task<IActionResult> EditVisibility(Guid id)
         {
@@ -105,6 +109,98 @@ namespace LiveMap.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleLike(Guid id, Guid? folderId = null)
+        {
+            var currentUserId = GetCurrentUserId();
+            if (currentUserId == null)
+            {
+                return Unauthorized();
+            }
+
+            var picture = await context.Pictures
+                .Include(p => p.Folder)
+                    .ThenInclude(f => f.Profile)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (picture == null)
+            {
+                return NotFound();
+            }
+
+            if (picture.Folder.Profile.UserId == currentUserId.Value)
+            {
+                return RedirectBack(folderId ?? picture.FolderId);
+            }
+
+            var existingLike = await context.PictureLikes
+                .FirstOrDefaultAsync(l => l.PictureId == id && l.UserId == currentUserId.Value);
+
+            if (existingLike == null)
+            {
+                await context.PictureLikes.AddAsync(new PictureLike
+                {
+                    PictureId = id,
+                    UserId = currentUserId.Value
+                });
+            }
+            else
+            {
+                context.PictureLikes.Remove(existingLike);
+            }
+
+            await context.SaveChangesAsync();
+            return RedirectBack(folderId ?? picture.FolderId);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddComment(Guid id, string content, Guid? folderId = null)
+        {
+            var currentUserId = GetCurrentUserId();
+            if (currentUserId == null)
+            {
+                return Unauthorized();
+            }
+
+            var picture = await context.Pictures
+                .Include(p => p.Folder)
+                    .ThenInclude(f => f.Profile)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (picture == null)
+            {
+                return NotFound();
+            }
+
+            if (picture.Folder.Profile.UserId == currentUserId.Value)
+            {
+                return RedirectBack(folderId ?? picture.FolderId);
+            }
+
+            content = (content ?? string.Empty).Trim();
+            if (!string.IsNullOrWhiteSpace(content))
+            {
+                if (content.Length > 500)
+                {
+                    content = content[..500];
+                }
+
+                await context.PictureComments.AddAsync(new PictureComment
+                {
+                    Id = Guid.NewGuid(),
+                    PictureId = id,
+                    UserId = currentUserId.Value,
+                    Content = content
+                });
+
+                await context.SaveChangesAsync();
+            }
+
+            return RedirectBack(folderId ?? picture.FolderId);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(Guid id, Guid folderId)
         {
             var picture = await context.Pictures
@@ -127,6 +223,17 @@ namespace LiveMap.Web.Controllers
             await context.SaveChangesAsync();
 
             return RedirectToAction("Details", "Folder", new { id = folderId == Guid.Empty ? picture.FolderId : folderId });
+        }
+
+        private IActionResult RedirectBack(Guid fallbackFolderId)
+        {
+            var returnUrl = Request.Headers.Referer.ToString();
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+
+            return RedirectToAction("Details", "Folder", new { id = fallbackFolderId });
         }
 
         private async Task PopulateAccessibilitiesAsync(Guid folderId)

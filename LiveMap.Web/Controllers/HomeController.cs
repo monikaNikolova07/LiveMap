@@ -95,7 +95,9 @@ namespace LiveMap.Web.Controllers
                         .Select(p => new
                         {
                             Picture = p,
-                            FollowersCount = _context.UserFollowings.Count(uf => uf.FolowingId == p.Folder.Profile.UserId)
+                            FollowersCount = _context.UserFollowings.Count(uf => uf.FolowingId == p.Folder.Profile.UserId),
+                            LikesCount = p.Likes.Count,
+                            CommentsCount = p.Comments.Count
                         })
                         .OrderByDescending(x => x.FollowersCount)
                         .ThenByDescending(x => x.Picture.CreatedOn)
@@ -108,7 +110,9 @@ namespace LiveMap.Web.Controllers
                             ProfilePicture = x.Picture.Folder.Profile.ProfilePicture ?? string.Empty,
                             FolderName = x.Picture.Folder.Name,
                             CreatedOn = x.Picture.CreatedOn,
-                            FollowersCount = x.FollowersCount
+                            FollowersCount = x.FollowersCount,
+                            LikesCount = x.Picture.Likes.Count,
+                            CommentsCount = x.Picture.Comments.Count
                         });
                     break;
 
@@ -188,7 +192,9 @@ namespace LiveMap.Web.Controllers
                     ProfileId = p.Folder.ProfileId,
                     ProfileAccessibility = p.Folder.Profile.Acssesability,
                     Username = p.Folder.Profile.User.UserName,
-                    ProfilePicture = p.Folder.Profile.ProfilePicture
+                    ProfilePicture = p.Folder.Profile.ProfilePicture,
+                    LikesCount = p.Likes.Count,
+                    CommentsCount = p.Comments.Count
                 })
                 .ToListAsync();
 
@@ -209,7 +215,9 @@ namespace LiveMap.Web.Controllers
                         FolderName = image.FolderName ?? string.Empty,
                         ProfileId = image.ProfileId,
                         Username = image.Username ?? "Unknown creator",
-                        ProfilePicture = image.ProfilePicture ?? string.Empty
+                        ProfilePicture = image.ProfilePicture ?? string.Empty,
+                        LikesCount = image.LikesCount,
+                        CommentsCount = image.CommentsCount
                     })
                     .ToList()
             };
@@ -258,7 +266,9 @@ namespace LiveMap.Web.Controllers
                 ProfilePicture = p.Folder.Profile.ProfilePicture ?? string.Empty,
                 FolderName = p.Folder.Name,
                 CreatedOn = p.CreatedOn,
-                FollowersCount = 0
+                FollowersCount = 0,
+                LikesCount = p.Likes.Count,
+                CommentsCount = p.Comments.Count
             };
         }
     }

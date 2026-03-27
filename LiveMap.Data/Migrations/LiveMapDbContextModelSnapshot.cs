@@ -90,6 +90,57 @@ namespace LiveMap.Data.Migrations
                     b.ToTable("Pictures");
                 });
 
+            modelBuilder.Entity("LiveMap.Data.Models.PictureComment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<Guid>("PictureId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PictureId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PictureComments");
+                });
+
+            modelBuilder.Entity("LiveMap.Data.Models.PictureLike", b =>
+                {
+                    b.Property<Guid>("PictureId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.HasKey("PictureId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PictureLikes");
+                });
+
             modelBuilder.Entity("LiveMap.Data.Models.Profile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -386,6 +437,44 @@ namespace LiveMap.Data.Migrations
                     b.Navigation("Folder");
                 });
 
+            modelBuilder.Entity("LiveMap.Data.Models.PictureComment", b =>
+                {
+                    b.HasOne("LiveMap.Data.Models.Picture", "Picture")
+                        .WithMany("Comments")
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LiveMap.Data.Models.User", "User")
+                        .WithMany("PictureComments")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Picture");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("LiveMap.Data.Models.PictureLike", b =>
+                {
+                    b.HasOne("LiveMap.Data.Models.Picture", "Picture")
+                        .WithMany("Likes")
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LiveMap.Data.Models.User", "User")
+                        .WithMany("PictureLikes")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Picture");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("LiveMap.Data.Models.Profile", b =>
                 {
                     b.HasOne("LiveMap.Data.Models.User", "User")
@@ -476,6 +565,13 @@ namespace LiveMap.Data.Migrations
                     b.Navigation("Subfolders");
                 });
 
+            modelBuilder.Entity("LiveMap.Data.Models.Picture", b =>
+                {
+                    b.Navigation("Comments");
+
+                    b.Navigation("Likes");
+                });
+
             modelBuilder.Entity("LiveMap.Data.Models.Profile", b =>
                 {
                     b.Navigation("Folders");
@@ -486,6 +582,10 @@ namespace LiveMap.Data.Migrations
                     b.Navigation("Followers");
 
                     b.Navigation("Followings");
+
+                    b.Navigation("PictureComments");
+
+                    b.Navigation("PictureLikes");
 
                     b.Navigation("Profile");
                 });

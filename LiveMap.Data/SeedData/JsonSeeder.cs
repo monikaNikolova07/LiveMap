@@ -33,6 +33,8 @@ namespace LiveMap.Data.SeedData
             await SeedProfilesAsync();
             await SeedFoldersAsync();
             await SeedPicturesAsync();
+            await SeedPictureLikesAsync();
+            await SeedPictureCommentsAsync();
             await SeedFolderStructuresAsync();
             await SeedUserFollowingsAsync();
         }
@@ -225,6 +227,78 @@ namespace LiveMap.Data.SeedData
             await _context.SaveChangesAsync();
         }
 
+
+        private async Task SeedPictureLikesAsync()
+        {
+            var pictureLikes = await ReadSeedAsync<List<PictureLikeSeedItem>>("picturelikes.json") ?? new();
+
+            foreach (var item in pictureLikes)
+            {
+                var pictureId = ParseGuid(item.PictureId);
+                var userId = ParseGuid(item.UserId);
+
+                if (await _context.PictureLikes.AnyAsync(pl => pl.PictureId == pictureId && pl.UserId == userId))
+                {
+                    continue;
+                }
+
+                var picture = await _context.Pictures
+                    .Include(p => p.Folder)
+                        .ThenInclude(f => f.Profile)
+                    .FirstOrDefaultAsync(p => p.Id == pictureId);
+
+                if (picture == null || picture.Folder.Profile.UserId == userId || !await _context.Users.AnyAsync(u => u.Id == userId))
+                {
+                    continue;
+                }
+
+                await _context.PictureLikes.AddAsync(new PictureLike
+                {
+                    PictureId = pictureId,
+                    UserId = userId
+                });
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task SeedPictureCommentsAsync()
+        {
+            var pictureComments = await ReadSeedAsync<List<PictureCommentSeedItem>>("picturecomments.json") ?? new();
+
+            foreach (var item in pictureComments)
+            {
+                var commentId = ParseGuid(item.Id);
+                if (await _context.PictureComments.AnyAsync(pc => pc.Id == commentId))
+                {
+                    continue;
+                }
+
+                var pictureId = ParseGuid(item.PictureId);
+                var userId = ParseGuid(item.UserId);
+
+                var picture = await _context.Pictures
+                    .Include(p => p.Folder)
+                        .ThenInclude(f => f.Profile)
+                    .FirstOrDefaultAsync(p => p.Id == pictureId);
+
+                if (picture == null || picture.Folder.Profile.UserId == userId || !await _context.Users.AnyAsync(u => u.Id == userId) || string.IsNullOrWhiteSpace(item.Content))
+                {
+                    continue;
+                }
+
+                await _context.PictureComments.AddAsync(new PictureComment
+                {
+                    Id = commentId,
+                    PictureId = pictureId,
+                    UserId = userId,
+                    Content = item.Content.Trim()
+                });
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
         private async Task SeedFolderStructuresAsync()
         {
             var folderStructures = await ReadSeedAsync<List<FolderStructureSeedItem>>("folderstructures.json") ?? new();
@@ -380,6 +454,20 @@ namespace LiveMap.Data.SeedData
             public string Url { get; set; } = null!;
             public string FolderId { get; set; } = null!;
             public string? Acssesability { get; set; }
+        }
+
+        private class PictureLikeSeedItem
+        {
+            public string PictureId { get; set; } = null!;
+            public string UserId { get; set; } = null!;
+        }
+
+        private class PictureCommentSeedItem
+        {
+            public string Id { get; set; } = null!;
+            public string PictureId { get; set; } = null!;
+            public string UserId { get; set; } = null!;
+            public string Content { get; set; } = null!;
         }
 
         private class FolderStructureSeedItem

@@ -18,5 +18,9 @@ namespace LiveMap.Data.Models
         public Acssesability Acssesability { get; set; }
 
         public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
+
+        public ICollection<PictureLike> Likes { get; set; } = new List<PictureLike>();
+
+        public ICollection<PictureComment> Comments { get; set; } = new List<PictureComment>();
     }
 }

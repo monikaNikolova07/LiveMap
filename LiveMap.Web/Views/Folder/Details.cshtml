@@ -77,11 +77,11 @@
     <h3>Pictures</h3>
     @if (Model.Pictures.Any())
     {
-        <div class="row g-3">
+        <div class="row g-4">
             @foreach (var pic in Model.Pictures)
             {
-                <div class="col-md-3 col-sm-4 col-6">
-                    <div class="picture-card">
+                <div class="col-lg-4 col-md-6">
+                    <div class="picture-card h-100">
                         @if (Model.IsOwner)
                         {
                             <div class="picture-card-actions">
@@ -103,7 +103,51 @@
 
                         <img src="@pic.Url" class="picture-card-image" alt="Folder picture" />
                         <div class="picture-card-body">
-                            <small class="text-muted">@(pic.Acssesability == LiveMap.Data.Models.Acssesability.FriendsOnly ? "Friends Only" : pic.Acssesability.ToString())</small>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <small class="text-muted">@(pic.Acssesability == LiveMap.Data.Models.Acssesability.FriendsOnly ? "Friends Only" : pic.Acssesability.ToString())</small>
+                                <div class="text-muted small">♥ @pic.LikesCount · 💬 @pic.CommentsCount</div>
+                            </div>
+
+                            @if (pic.CanInteract)
+                            {
+                                <div class="d-flex gap-2 mb-3">
+                                    <form asp-controller="Picture" asp-action="ToggleLike" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@pic.Id" />
+                                        <input type="hidden" name="folderId" value="@Model.Id" />
+                                        <button type="submit" class="btn btn-sm @(pic.IsLikedByCurrentUser ? "btn-danger" : "btn-outline-danger")">♥</button>
+                                    </form>
+                                    <a class="btn btn-sm btn-outline-secondary" href="#comments-@pic.Id">💬</a>
+                                </div>
+
+                                <form asp-controller="Picture" asp-action="AddComment" method="post" class="mb-3" id="comments-@pic.Id">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@pic.Id" />
+                                    <input type="hidden" name="folderId" value="@Model.Id" />
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" name="content" class="form-control" maxlength="500" placeholder="Write a comment..." />
+                                        <button type="submit" class="btn btn-outline-primary">Post</button>
+                                    </div>
+                                </form>
+                            }
+
+                            @if (pic.Comments.Any())
+                            {
+                                <div class="small">
+                                    @foreach (var comment in pic.Comments)
+                                    {
+                                        <div class="border rounded p-2 mb-2 bg-light-subtle">
+                                            <div class="fw-semibold">@comment.Username</div>
+                                            <div>@comment.Content</div>
+                                            <div class="text-muted">@comment.CreatedOn.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted small mb-0">No comments yet.</p>
+                            }
                         </div>
                     </div>
                 </div>

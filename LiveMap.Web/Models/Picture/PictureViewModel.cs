@@ -13,5 +13,8 @@ namespace LiveMap.Web.Models.Picture
         public string FolderName { get; set; }
 
         public Acssesability Acssesability { get; set; }
+        public int LikesCount { get; set; }
+        public int CommentsCount { get; set; }
+        public bool IsLikedByCurrentUser { get; set; }
     }
 }

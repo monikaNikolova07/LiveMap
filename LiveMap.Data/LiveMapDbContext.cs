@@ -14,6 +14,8 @@ namespace LiveMap.Data
         public DbSet<Folder> Folders { get; set; } = null!;
         public DbSet<FolderStructure> FolderStructures { get; set; } = null!;
         public DbSet<Picture> Pictures { get; set; } = null!;
+        public DbSet<PictureLike> PictureLikes { get; set; } = null!;
+        public DbSet<PictureComment> PictureComments { get; set; } = null!;
         public DbSet<Profile> Profiles { get; set; } = null!;
         public DbSet<UserFollowing> UserFollowings { get; set; } = null!;
 

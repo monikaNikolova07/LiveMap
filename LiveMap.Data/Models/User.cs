@@ -14,5 +14,9 @@ namespace LiveMap.Data.Models
 
         [InverseProperty(nameof(UserFollowing.Following))]
         public ICollection<UserFollowing> Followers { get; set; } = new List<UserFollowing>();
+
+        public ICollection<PictureLike> PictureLikes { get; set; } = new List<PictureLike>();
+
+        public ICollection<PictureComment> PictureComments { get; set; } = new List<PictureComment>();
     }
 }

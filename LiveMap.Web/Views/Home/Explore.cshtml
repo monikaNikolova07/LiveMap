@@ -119,6 +119,7 @@ else if (Model.Pictures.Any())
                                 <div class="fw-semibold">@picture.Username</div>
                                 <div class="text-muted small">Folder: @picture.FolderName</div>
                                 <div class="text-muted small">@picture.CreatedOn.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</div>
+                                <div class="text-muted small">♥ @picture.LikesCount · 💬 @picture.CommentsCount</div>
                                 @if (Model.SelectedFilter == ExploreFilterOptions.PopularUsers)
                                 {
                                     <div class="text-muted small">Followers: @picture.FollowersCount</div>
