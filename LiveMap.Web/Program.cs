@@ -10,8 +10,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LiveMap.Web
 {
-    //sdrfyvgmkpl,[.;'ngvgbb gves
-    //
     public class Program
     {
         public static async Task Main(string[] args)

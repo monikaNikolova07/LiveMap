@@ -5,59 +5,67 @@
     var aliasesJson = JsonSerializer.Serialize(Model.CountryAliases);
 }
 
-<section class="hero-shell">
-    <div class="hero-copy">
-        <p class="section-eyebrow">Discover public travel folders</p>
-        <h1 class="hero-title">Search by country or click the world map</h1>
-        <p class="hero-subtitle">
-            Pick a country from the search dropdown or click it on the map to open all images from public folders for that country.
-            Selecting an image takes visitors to the creator's profile.
-        </p>
+<section class="home-page">
+    <div class="home-hero">
+        <div class="home-hero-copy">
+            <p class="home-kicker">Discover public travel folders</p>
 
-        <form asp-controller="Home" asp-action="Country" method="get" class="country-search-panel" id="countrySearchForm">
-            <div class="country-combobox" id="countryCombobox">
-                <input type="hidden" name="country" id="selectedCountryValue" />
-                <label class="form-label" for="countrySearchInput">Country</label>
-                <div class="country-combobox-input-wrap">
-                    <input id="countrySearchInput"
-                           type="text"
-                           class="form-control country-search-input"
-                           placeholder="Search for Bulgaria, France, Japan..."
-                           autocomplete="off"
-                           aria-expanded="false"
-                           aria-controls="countryOptionsList"
-                           aria-autocomplete="list" />
-                    <button type="button" class="country-combobox-toggle" id="countryComboboxToggle" aria-label="Toggle country list">⌄</button>
+            <h1 class="home-title">Search by country or click the world map</h1>
+
+            <p class="home-description">
+                Pick a country from the search dropdown or click it on the map to open all images from public folders for that country.
+                Selecting an image takes visitors to the creator's profile.
+            </p>
+
+            <form asp-controller="Home" asp-action="Country" method="get" class="country-search-panel" id="countrySearchForm">
+                <div class="country-combobox" id="countryCombobox">
+                    <input type="hidden" name="country" id="selectedCountryValue" />
+
+                    <label class="form-label home-label" for="countrySearchInput">Country</label>
+
+                    <div class="country-combobox-input-wrap">
+                        <input id="countrySearchInput"
+                               type="text"
+                               class="form-control country-search-input"
+                               placeholder="Search for Bulgaria, France, Japan..."
+                               autocomplete="off"
+                               aria-expanded="false"
+                               aria-controls="countryOptionsList"
+                               aria-autocomplete="list" />
+                        <button type="button" class="country-combobox-toggle" id="countryComboboxToggle" aria-label="Toggle country list">⌄</button>
+                    </div>
+
+                    <div class="country-options" id="countryOptionsList" role="listbox">
+                        @foreach (var country in Model.Countries)
+                        {
+                            <button type="button"
+                                    class="country-option"
+                                    data-value="@country.Value"
+                                    data-name="@country.Name"
+                                    role="option">
+                                <span class="country-option-flag" aria-hidden="true">@country.FlagEmoji</span>
+                                <span class="country-option-name">@country.Name</span>
+                            </button>
+                        }
+                    </div>
                 </div>
 
-                <div class="country-options" id="countryOptionsList" role="listbox">
-                    @foreach (var country in Model.Countries)
-                    {
-                        <button type="button"
-                                class="country-option"
-                                data-value="@country.Value"
-                                data-name="@country.Name"
-                                role="option">
-                            <span class="country-option-flag" aria-hidden="true">@country.FlagEmoji</span>
-                            <span class="country-option-name">@country.Name</span>
-                        </button>
-                    }
-                </div>
-            </div>
-
-            <button type="submit" class="btn btn-primary btn-lg home-search-button">Open country gallery</button>
-        </form>
-    </div>
-
-    <div class="hero-map-card">
-        <div class="map-card-header">
-            <div>
-                <p class="section-eyebrow mb-1">Interactive world map</p>
-                <h2 class="section-title mb-0">Click any country</h2>
-            </div>
-            <span class="map-badge">World view</span>
+                <button type="submit" class="btn home-search-button">Open country gallery</button>
+            </form>
         </div>
-        <div id="worldMap" class="world-map" aria-label="Interactive world map"></div>
+
+        <div class="home-map-panel">
+            <div class="home-map-topbar">
+                <div>
+                    <p class="home-map-kicker">Interactive world map</p>
+                    <h2 class="home-map-title">Click any country</h2>
+                </div>
+
+                <span class="home-map-chip">World view</span>
+            </div>
+
+            <div id="worldMap" class="world-map" aria-label="Interactive world map"></div>
+        </div>
     </div>
 </section>
 
@@ -164,17 +172,19 @@
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
 
-            const defaultStyle = {
-                color: '#1d4ed8',
-                weight: 1,
-                fillColor: '#60a5fa',
-                fillOpacity: 0.24
-            };
+        const defaultStyle = {
+            color: '#6367FF',
+            weight: 1,
+            fillColor: '#C9BEFF',
+            fillOpacity: 0.30
+        };
 
-            const hoverStyle = {
-                weight: 2,
-                fillOpacity: 0.45
-            };
+        const hoverStyle = {
+            color: '#6367FF',
+            weight: 1.7,
+            fillColor: '#8494FF',
+            fillOpacity: 0.45
+        };
 
             const normalizeKey = (value) => value
                 .normalize('NFD')
