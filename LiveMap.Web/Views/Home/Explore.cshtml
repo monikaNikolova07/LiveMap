@@ -2,41 +2,101 @@
 @using LiveMap.Web.Models.Home
 @{
     ViewData["Title"] = "Explore";
+
+    var isNewest = Model.SelectedFilter == ExploreFilterOptions.Newest;
+    var isOldest = Model.SelectedFilter == ExploreFilterOptions.Oldest;
+    var isByUser = Model.SelectedFilter == ExploreFilterOptions.ByUser;
+    var isPopular = Model.SelectedFilter == ExploreFilterOptions.PopularUsers;
+    var isFollowing = Model.SelectedFilter == ExploreFilterOptions.FollowingNewest;
+    var isFriends = Model.SelectedFilter == ExploreFilterOptions.FriendsNewest;
 }
 
-<section class="mb-4 explore-hero">
-    <p class="section-eyebrow">Explore</p>
-    <h1 class="section-title">@Model.Heading</h1>
-    <p class="text-muted">@Model.Description</p>
-</section>
+<section class="explore-showcase">
+    <div class="explore-showcase-copy">
+        <p class="section-eyebrow">Explore the vibe</p>
+        <h1 class="section-title explore-showcase-title">Discover travel stories with a more editorial, social and premium feel.</h1>
+        <p class="explore-showcase-text">Jump between fresh uploads, creator-focused filters and public memories from around the world. Same functionality, just way more presence.</p>
 
-<section class="explore-filter-card card shadow-sm border-0 mb-4">
-    <div class="card-body">
-        <form method="get" asp-controller="Home" asp-action="Explore" class="row g-3 align-items-end">
-            <div class="col-lg-5">
-                <label for="filter" class="form-label fw-semibold">Filter</label>
-                <select id="filter" name="filter" class="form-select explore-filter-select">
-                    @if (Model.SelectedFilter == ExploreFilterOptions.Newest) { <option value="@ExploreFilterOptions.Newest" selected>Newest public pictures</option> } else { <option value="@ExploreFilterOptions.Newest">Newest public pictures</option> }
-                    @if (Model.SelectedFilter == ExploreFilterOptions.Oldest) { <option value="@ExploreFilterOptions.Oldest" selected>Oldest public pictures</option> } else { <option value="@ExploreFilterOptions.Oldest">Oldest public pictures</option> }
-                    @if (Model.SelectedFilter == ExploreFilterOptions.ByUser) { <option value="@ExploreFilterOptions.ByUser" selected>Pictures by username</option> } else { <option value="@ExploreFilterOptions.ByUser">Pictures by username</option> }
-                    @if (Model.SelectedFilter == ExploreFilterOptions.PopularUsers) { <option value="@ExploreFilterOptions.PopularUsers" selected>Pictures from most popular users</option> } else { <option value="@ExploreFilterOptions.PopularUsers">Pictures from most popular users</option> }
-                    @if (Model.SelectedFilter == ExploreFilterOptions.FollowingNewest) { <option value="@ExploreFilterOptions.FollowingNewest" selected>Newest pictures from people I follow</option> } else { <option value="@ExploreFilterOptions.FollowingNewest">Newest pictures from people I follow</option> }
-                    @if (Model.SelectedFilter == ExploreFilterOptions.FriendsNewest) { <option value="@ExploreFilterOptions.FriendsNewest" selected>Newest pictures from my friends</option> } else { <option value="@ExploreFilterOptions.FriendsNewest">Newest pictures from my friends</option> }
-                </select>
+        <div class="explore-mood-row">
+            <div class="explore-mood-card is-primary">
+                <span class="explore-mood-label">Results</span>
+                <strong>@Model.ResultsCount</strong>
+                <small>public moments right now</small>
             </div>
-            <div class="col-lg-5" id="usernameContainer" style="@(Model.SelectedFilter == ExploreFilterOptions.ByUser ? "display:block;" : "display:none;")">
-                <label for="username" class="form-label fw-semibold">Username</label>
-                <input id="username" name="username" class="form-control" value="@Model.UsernameQuery" placeholder="Enter username..." />
+            <div class="explore-mood-card">
+                <span class="explore-mood-label">Mode</span>
+                <strong>@Model.Heading</strong>
+                <small>switch the feed in one click</small>
             </div>
-            <div class="col-lg-2 d-grid">
-                <button type="submit" class="btn btn-primary">Apply</button>
-            </div>
-        </form>
-        <div class="explore-filter-hint mt-3">
-            <span class="badge rounded-pill text-bg-light">@Model.ResultsCount results</span>
-            <span class="text-muted small">Now you can also like and comment directly from Explore.</span>
         </div>
     </div>
+
+    <div class="explore-showcase-panel">
+        <div class="explore-floating-pill">Live public feed</div>
+        <div class="explore-panel-grid">
+            <div class="explore-panel-card">
+                <span>Fresh uploads</span>
+                <strong>Magazine look</strong>
+            </div>
+            <div class="explore-panel-card is-soft">
+                <span>Creators</span>
+                <strong>Faces + folders</strong>
+            </div>
+            <div class="explore-panel-card is-wide">
+                <span>Interactions</span>
+                <strong>Like, comment and open profiles directly from the feed.</strong>
+            </div>
+        </div>
+        <div class="explore-orb one"></div>
+        <div class="explore-orb two"></div>
+    </div>
+</section>
+
+<section class="explore-command-card mb-4">
+    <div class="explore-command-topbar">
+        <div>
+            <p class="section-eyebrow mb-1">Feed controls</p>
+            <h2 class="section-title mb-0">Curate the exact mood of the feed</h2>
+        </div>
+        <div class="explore-filter-hint-inline">
+            <span class="badge rounded-pill text-bg-light">@Model.ResultsCount posts</span>
+            <span>@Model.Description</span>
+        </div>
+    </div>
+
+    <div class="explore-filter-chip-row" role="tablist" aria-label="Quick explore filters">
+        <button type="button" class="explore-chip @(isNewest ? "is-active" : "")" data-filter-value="@ExploreFilterOptions.Newest">Newest</button>
+        <button type="button" class="explore-chip @(isOldest ? "is-active" : "")" data-filter-value="@ExploreFilterOptions.Oldest">Oldest</button>
+        <button type="button" class="explore-chip @(isByUser ? "is-active" : "")" data-filter-value="@ExploreFilterOptions.ByUser">By user</button>
+        <button type="button" class="explore-chip @(isPopular ? "is-active" : "")" data-filter-value="@ExploreFilterOptions.PopularUsers">Popular users</button>
+        <button type="button" class="explore-chip @(isFollowing ? "is-active" : "")" data-filter-value="@ExploreFilterOptions.FollowingNewest">Following</button>
+        <button type="button" class="explore-chip @(isFriends ? "is-active" : "")" data-filter-value="@ExploreFilterOptions.FriendsNewest">Friends</button>
+    </div>
+
+    <form method="get" asp-controller="Home" asp-action="Explore" class="explore-command-form">
+        <div class="explore-command-main">
+            <div>
+                <label for="filter" class="form-label fw-semibold">Feed type</label>
+                <select id="filter" name="filter" class="form-select explore-filter-select">
+                    @if (isNewest) { <option value="@ExploreFilterOptions.Newest" selected>Newest public pictures</option> } else { <option value="@ExploreFilterOptions.Newest">Newest public pictures</option> }
+                    @if (isOldest) { <option value="@ExploreFilterOptions.Oldest" selected>Oldest public pictures</option> } else { <option value="@ExploreFilterOptions.Oldest">Oldest public pictures</option> }
+                    @if (isByUser) { <option value="@ExploreFilterOptions.ByUser" selected>Pictures by username</option> } else { <option value="@ExploreFilterOptions.ByUser">Pictures by username</option> }
+                    @if (isPopular) { <option value="@ExploreFilterOptions.PopularUsers" selected>Pictures from most popular users</option> } else { <option value="@ExploreFilterOptions.PopularUsers">Pictures from most popular users</option> }
+                    @if (isFollowing) { <option value="@ExploreFilterOptions.FollowingNewest" selected>Newest pictures from people I follow</option> } else { <option value="@ExploreFilterOptions.FollowingNewest">Newest pictures from people I follow</option> }
+                    @if (isFriends) { <option value="@ExploreFilterOptions.FriendsNewest" selected>Newest pictures from my friends</option> } else { <option value="@ExploreFilterOptions.FriendsNewest">Newest pictures from my friends</option> }
+                </select>
+            </div>
+
+            <div id="usernameContainer" style="@(isByUser ? "display:block;" : "display:none;")">
+                <label for="username" class="form-label fw-semibold">Username</label>
+                <input id="username" name="username" class="form-control" value="@Model.UsernameQuery" placeholder="Search by username..." />
+            </div>
+
+            <div class="explore-command-action">
+                <button type="submit" class="btn btn-primary w-100">Apply feed</button>
+            </div>
+        </div>
+    </form>
 </section>
 
 @if (Model.RequiresLoginNotice)
@@ -50,80 +110,79 @@
 }
 else if (Model.Pictures.Any())
 {
-    <div class="row g-4">
+    <section class="explore-feed-grid">
         @foreach (var picture in Model.Pictures)
         {
-            <div class="col-md-6 col-xl-4">
-                <div class="card h-100 shadow-sm explore-card">
-                    <img src="@picture.ImageUrl" class="card-img-top explore-image" alt="@picture.FolderName image" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='/images/travel-placeholder.jpg';" />
-                    <div class="card-body">
-                        <div class="d-flex align-items-center gap-3 mb-3">
+            <article class="explore-spotlight-card">
+                <div class="explore-spotlight-media-wrap">
+                    <img src="@picture.ImageUrl" class="explore-spotlight-media" alt="@picture.FolderName image" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='/images/travel-placeholder.jpg';" />
+                    <div class="explore-spotlight-overlay">
+                        <span class="explore-overlay-pill">@picture.FolderName</span>
+                        <span class="explore-overlay-pill is-ghost">@picture.CreatedOn.ToLocalTime().ToString("dd MMM yyyy")</span>
+                    </div>
+                </div>
+
+                <div class="explore-spotlight-body">
+                    <div class="explore-creator-row">
+                        <div class="explore-creator-main">
                             <img src="@(string.IsNullOrWhiteSpace(picture.ProfilePicture) ? "/images/default.jpeg" : picture.ProfilePicture)"
                                  alt="@picture.Username avatar"
-                                 class="rounded-circle"
-                                 style="width: 52px; height: 52px; object-fit: cover;" />
+                                 class="explore-creator-avatar" />
                             <div>
-                                <div class="fw-semibold">@picture.Username</div>
-                                <div class="text-muted small">Folder: @picture.FolderName</div>
-                                <div class="text-muted small">@picture.CreatedOn.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</div>
-                                <div class="text-muted small">♥ @picture.LikesCount · 💬 @picture.CommentsCount</div>
-                                @if (Model.SelectedFilter == ExploreFilterOptions.PopularUsers)
-                                {
-                                    <div class="text-muted small">Followers: @picture.FollowersCount</div>
-                                }
+                                <div class="explore-creator-name">@picture.Username</div>
+                                <div class="explore-creator-meta">♥ @picture.LikesCount · 💬 @picture.CommentsCount@if (isPopular) {<text> · Followers: @picture.FollowersCount</text>}</div>
                             </div>
                         </div>
+                        <a asp-controller="Profile" asp-action="Details" asp-route-id="@picture.ProfileId" class="explore-mini-link">Profile</a>
+                    </div>
 
-                        @if (!string.IsNullOrWhiteSpace(picture.Description))
-                        {
-                            <p class="mb-3">@picture.Description</p>
-                        }
+                    @if (!string.IsNullOrWhiteSpace(picture.Description))
+                    {
+                        <p class="explore-spotlight-description">@picture.Description</p>
+                    }
+                    else
+                    {
+                        <p class="explore-spotlight-description is-muted">A clean travel memory from @picture.Username's public folder collection.</p>
+                    }
 
-                        @if (picture.CanInteract)
-                        {
-                            <div class="d-flex gap-2 mb-3">
-                                <form asp-controller="Picture" asp-action="ToggleLike" method="post" class="d-inline">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="id" value="@picture.PictureId" />
-                                    <input type="hidden" name="folderId" value="@picture.FolderId" />
-                                    <button type="submit" class="btn btn-sm @(picture.IsLikedByCurrentUser ? "btn-danger" : "btn-outline-danger")">♥</button>
-                                </form>
-                                <a class="btn btn-sm btn-outline-secondary" href="#explore-comments-@picture.PictureId">💬</a>
-                            </div>
-
-                            <form asp-controller="Picture" asp-action="AddComment" method="post" class="mb-3" id="explore-comments-@picture.PictureId">
+                    @if (picture.CanInteract)
+                    {
+                        <div class="explore-action-strip">
+                            <form asp-controller="Picture" asp-action="ToggleLike" method="post" class="d-inline">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="id" value="@picture.PictureId" />
                                 <input type="hidden" name="folderId" value="@picture.FolderId" />
-                                <div class="input-group input-group-sm">
-                                    <input type="text" name="content" class="form-control" maxlength="500" placeholder="Write a comment..." />
-                                    <button type="submit" class="btn btn-outline-primary">Post</button>
-                                </div>
+                                <button type="submit" class="explore-icon-button @(picture.IsLikedByCurrentUser ? "is-liked" : "")">♥ <span>@(picture.IsLikedByCurrentUser ? "Liked" : "Like")</span></button>
                             </form>
-                        }
-
-                        @if (picture.Comments.Any())
-                        {
-                            <div class="small mb-3">
-                                @foreach (var comment in picture.Comments)
-                                {
-                                    <div class="border rounded p-2 mb-2 bg-light-subtle">
-                                        <div class="fw-semibold">@comment.Username</div>
-                                        <div>@comment.Content</div>
-                                    </div>
-                                }
-                            </div>
-                        }
-
-                        <div class="d-flex gap-2">
-                            <a asp-controller="Profile" asp-action="Details" asp-route-id="@picture.ProfileId" class="btn btn-outline-primary">Open profile</a>
-                            <a asp-controller="Folder" asp-action="Details" asp-route-id="@picture.FolderId" class="btn btn-outline-secondary">Open folder</a>
+                            <a class="explore-icon-button is-secondary" href="#explore-comments-@picture.PictureId">💬 <span>Comment</span></a>
+                            <a asp-controller="Folder" asp-action="Details" asp-route-id="@picture.FolderId" class="explore-icon-button is-secondary">↗ <span>Open folder</span></a>
                         </div>
-                    </div>
+
+                        <form asp-controller="Picture" asp-action="AddComment" method="post" class="explore-comment-form" id="explore-comments-@picture.PictureId">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@picture.PictureId" />
+                            <input type="hidden" name="folderId" value="@picture.FolderId" />
+                            <input type="text" name="content" class="form-control" maxlength="500" placeholder="Drop a quick comment..." />
+                            <button type="submit" class="btn btn-outline-primary">Post</button>
+                        </form>
+                    }
+
+                    @if (picture.Comments.Any())
+                    {
+                        <div class="explore-comment-stack">
+                            @foreach (var comment in picture.Comments)
+                            {
+                                <div class="explore-comment-bubble">
+                                    <strong>@comment.Username</strong>
+                                    <span>@comment.Content</span>
+                                </div>
+                            }
+                        </div>
+                    }
                 </div>
-            </div>
+            </article>
         }
-    </div>
+    </section>
 }
 else
 {
@@ -132,18 +191,31 @@ else
 
 @section Scripts {
     <script>
-        const filterSelect = document.getElementById("filter");
-        const usernameContainer = document.getElementById("usernameContainer");
+        (() => {
+            const filterSelect = document.getElementById("filter");
+            const usernameContainer = document.getElementById("usernameContainer");
+            const chips = document.querySelectorAll(".explore-chip");
 
-        function toggleUsernameField() {
-            if (filterSelect.value === "ByUser") {
-                usernameContainer.style.display = "block";
-            } else {
-                usernameContainer.style.display = "none";
+            function toggleUsernameField() {
+                if (!filterSelect || !usernameContainer) return;
+                usernameContainer.style.display = filterSelect.value === "@ExploreFilterOptions.ByUser" ? "block" : "none";
             }
-        }
 
-        toggleUsernameField();
-        filterSelect.addEventListener("change", toggleUsernameField);
+            chips.forEach(chip => {
+                chip.addEventListener("click", () => {
+                    if (!filterSelect) return;
+                    filterSelect.value = chip.dataset.filterValue || filterSelect.value;
+                    chips.forEach(x => x.classList.remove("is-active"));
+                    chip.classList.add("is-active");
+                    toggleUsernameField();
+                });
+            });
+
+            toggleUsernameField();
+            filterSelect?.addEventListener("change", () => {
+                chips.forEach(x => x.classList.toggle("is-active", x.dataset.filterValue === filterSelect.value));
+                toggleUsernameField();
+            });
+        })();
     </script>
 }

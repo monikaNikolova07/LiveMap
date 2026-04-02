@@ -10,63 +10,94 @@
     <link rel="stylesheet" href="~/LiveMap.styles.css" asp-append-version="true" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-controller="Home" asp-action="Index">LiveMap</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Explore">Explore</a>
-                        </li>
-                        @if (User?.Identity?.IsAuthenticated ?? false)
-                        {
+    <div class="page-chrome">
+        <div class="page-glow page-glow-one"></div>
+        <div class="page-glow page-glow-two"></div>
+        <div class="page-glow page-glow-three"></div>
+
+        <header class="app-header">
+            <nav class="navbar navbar-expand-lg app-navbar">
+                <div class="container-fluid app-navbar-inner">
+                    <a class="navbar-brand app-brand" asp-controller="Home" asp-action="Index">
+                        <span class="app-brand-mark"></span>
+                        <span>
+                            <strong>LiveMap</strong>
+                            <small>travel stories in motion</small>
+                        </span>
+                    </a>
+
+                    <button class="navbar-toggler app-navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar"
+                            aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="collapse navbar-collapse" id="mainNavbar">
+                        <ul class="navbar-nav app-nav-links me-auto mb-2 mb-lg-0">
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Profile" asp-action="Search">Search Users</a>
+                                <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Profile" asp-action="Notifications">Notifications</a>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Discover
+                                </a>
+                                <ul class="dropdown-menu app-dropdown-menu">
+                                    <li><a class="dropdown-item" asp-controller="Home" asp-action="Explore">Explore feed</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Home" asp-action="Index">Country galleries</a></li>
+                                    @if (User?.Identity?.IsAuthenticated ?? false)
+                                    {
+                                        <li><a class="dropdown-item" asp-controller="Profile" asp-action="Search">Search users</a></li>
+                                    }
+                                </ul>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Profile" asp-action="Index">Profile</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="TravelMap" asp-action="Index">Passport Palette</a>
-                            </li>
-                            @if (User.IsInRole("Admin"))
+
+                            @if (User?.Identity?.IsAuthenticated ?? false)
                             {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Admin" asp-action="Index">Admin Panel</a>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        My space
+                                    </a>
+                                    <ul class="dropdown-menu app-dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="Profile" asp-action="Index">Profile</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Profile" asp-action="Notifications">Notifications</a></li>
+                                        <li><a class="dropdown-item" asp-controller="TravelMap" asp-action="Index">Passport Palette</a></li>
+                                        @if (User.IsInRole("Admin"))
+                                        {
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Index">Admin Panel</a></li>
+                                        }
+                                    </ul>
                                 </li>
                             }
-                        }
-                    </ul>
-                    <partial name="_LoginPartial" />
+                        </ul>
+
+                        <div class="app-nav-actions">
+                            <partial name="_LoginPartial" />
+                        </div>
+                    </div>
                 </div>
+            </nav>
+        </header>
+
+        <div class="app-main-shell">
+            <main role="main" class="app-main container-fluid">
+                @RenderBody()
+            </main>
+        </div>
+
+        <footer class="app-footer">
+            <div class="container-fluid app-footer-inner">
+                <div>
+                    <div class="app-footer-brand">LiveMap</div>
+                    <p class="app-footer-copy mb-0">Turn folders, countries and memories into a polished visual travel journal.</p>
+                </div>
+                <div class="app-footer-meta">&copy; @DateTime.Now.Year</div>
             </div>
-        </nav>
-    </header>
-    <div class="container-fluid px-0">
-        <main role="main">
-            @RenderBody()
-        </main>
+        </footer>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; @DateTime.Now.Year - LiveMap
-        </div>
-    </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
