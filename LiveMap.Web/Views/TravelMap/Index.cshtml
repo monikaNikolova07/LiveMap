@@ -7,7 +7,7 @@
     var visitedJson = JsonSerializer.Serialize(Model.VisitedCountries.ToDictionary(x => x.CountryValue, x => new { colorHex = x.ColorHex, countryName = x.CountryName, folderCount = x.FolderCount, pictureCount = x.PictureCount }));
 }
 
-<section class="travel-map-shell">
+<section class="travel-map-shell travel-map-shell-modern">
     <div class="travel-map-hero">
         <div>
             <p class="section-eyebrow mb-2">Your private travel progress</p>

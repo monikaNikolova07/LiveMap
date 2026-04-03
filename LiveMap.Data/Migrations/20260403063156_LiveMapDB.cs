@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace LiveMap.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class LiveMapDb : Migration
+    public partial class LiveMapDB : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

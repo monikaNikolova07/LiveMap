@@ -3,36 +3,65 @@
     ViewData["Title"] = "Search users";
 }
 
-<section class="mb-4">
-    <p class="section-eyebrow">Community</p>
-    <h1 class="section-title">Search users</h1>
-    <form method="get" class="row g-2 mt-2">
-        <div class="col-md-8">
-            <input type="text" name="term" value="@Model.Term" class="form-control" placeholder="Search by username..." />
-        </div>
-        <div class="col-md-4">
-            <button type="submit" class="btn btn-primary w-100">Search</button>
-        </div>
-    </form>
-</section>
+<section class="search-users-shell">
+    <div class="search-users-hero">
+        <div class="search-users-copy">
+            <p class="section-eyebrow">Community radar</p>
+            <h1 class="section-title search-users-title">Search users with a cleaner, sharper and more elegant directory view.</h1>
+            <p class="search-users-text">Find creators faster, preview their vibe and open profiles without the page feeling oversized.</p>
 
-@if (Model.Results.Any())
-{
-    <div class="row g-3">
-        @foreach (var user in Model.Results)
-        {
-            <div class="col-md-6">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body d-flex gap-3">
+            <div class="search-users-mini-stats">
+                <div class="search-users-stat is-primary">
+                    <span>Results</span>
+                    <strong>@Model.Results.Count()</strong>
+                    <small>matching profiles</small>
+                </div>
+                <div class="search-users-stat">
+                    <span>Search</span>
+                    <strong>@(string.IsNullOrWhiteSpace(Model.Term) ? "All users" : Model.Term)</strong>
+                    <small>live directory view</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="search-users-panel">
+            <form method="get" class="search-users-form">
+                <label for="term" class="search-users-label">Username</label>
+                <div class="search-users-input-wrap">
+                    <span class="search-users-icon">⌕</span>
+                    <input id="term" type="text" name="term" value="@Model.Term" class="form-control search-users-input" placeholder="Search by username..." />
+                </div>
+                <button type="submit" class="btn btn-primary search-users-button">Search now</button>
+            </form>
+
+            <div class="search-users-note">
+                <strong>Quick tip</strong>
+                <span>Use short usernames or parts of a name to get cleaner results.</span>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.Results.Any())
+    {
+        <div class="search-users-grid">
+            @foreach (var user in Model.Results)
+            {
+                <article class="search-user-card">
+                    <div class="search-user-main">
                         <img src="@(string.IsNullOrWhiteSpace(user.ProfilePicture) ? "/images/default.jpeg" : user.ProfilePicture)"
                              alt="@user.Username avatar"
-                             class="rounded-circle"
-                             style="width: 72px; height: 72px; object-fit: cover;" />
-                        <div class="flex-grow-1">
-                            <h5 class="mb-1">@user.Username</h5>
-                            <p class="text-muted mb-2">@(string.IsNullOrWhiteSpace(user.Bio) ? "No bio yet." : user.Bio)</p>
-                            <div class="small text-muted mb-3">Followers: @user.FollowersCount</div>
-                            <div class="d-flex gap-2 flex-wrap">
+                             class="search-user-avatar" />
+
+                        <div class="search-user-content">
+                            <div class="search-user-topline">
+                                <div>
+                                    <h3 class="search-user-name">@user.Username</h3>
+                                    <p class="search-user-bio">@(string.IsNullOrWhiteSpace(user.Bio) ? "No bio yet." : user.Bio)</p>
+                                </div>
+                                <span class="search-user-pill">@user.FollowersCount follower@(user.FollowersCount == 1 ? string.Empty : "s")</span>
+                            </div>
+
+                            <div class="search-user-actions">
                                 <a asp-action="Details" asp-route-id="@user.Id" class="btn btn-outline-primary btn-sm">Open profile</a>
                                 @if ((User.Identity?.IsAuthenticated ?? false) && !user.IsOwnProfile)
                                 {
@@ -54,12 +83,15 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        }
-    </div>
-}
-else
-{
-    <div class="alert alert-info">No users matched your search.</div>
-}
+                </article>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state-card search-users-empty">
+            <h3>No users matched your search</h3>
+            <p class="mb-0">Try a shorter keyword or search with a different username variation.</p>
+        </div>
+    }
+</section>

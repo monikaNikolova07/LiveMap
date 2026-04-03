@@ -117,20 +117,19 @@
                         </div>
                     }
 
-                    <a asp-controller="Folder" asp-action="Details" asp-route-id="@folder.Id" class="folder-shortcut-link folder-showcase-link" aria-label="Open @folder.Name folder">
+                    <a asp-controller="Folder" asp-action="Details" asp-route-id="@folder.Id" class="folder-shortcut-link folder-showcase-link folder-showcase-link-modern" aria-label="Open @folder.Name folder">
                         <div class="folder-showcase-topline">
-                            <span class="folder-shortcut-icon" aria-hidden="true">
-                                <svg viewBox="0 0 64 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M4 13.5C4 9.35786 7.35786 6 11.5 6H24L29 12H52.5C56.6421 12 60 15.3579 60 19.5V40.5C60 44.6421 56.6421 48 52.5 48H11.5C7.35786 48 4 44.6421 4 40.5V13.5Z" fill="#FFD86B" />
-                                    <path d="M4 18C4 14.6863 6.68629 12 10 12H54C57.3137 12 60 14.6863 60 18V40C60 44.4183 56.4183 48 52 48H12C7.58172 48 4 44.4183 4 40V18Z" fill="#F4B942" />
-                                    <path d="M11 19H53" stroke="#D89A19" stroke-width="2.5" stroke-linecap="round" />
-                                </svg>
-                            </span>
+                            <span class="folder-showcase-symbol" aria-hidden="true">✦</span>
                             <span class="folder-showcase-arrow">↗</span>
                         </div>
-                        <span class="folder-shortcut-name">@folder.Name</span>
-                        <span class="folder-showcase-subtitle">Travel memories packed in one curated place.</span>
-                        <span class="badge text-bg-light mt-2">@folder.AccessibilityLabel</span>
+                        <div class="folder-showcase-body">
+                            <span class="folder-shortcut-name">@folder.Name</span>
+                            <span class="folder-showcase-subtitle">Travel memories, organized in one elegant collection.</span>
+                        </div>
+                        <div class="folder-showcase-footer">
+                            <span class="badge text-bg-light">@folder.AccessibilityLabel</span>
+                            <span class="folder-showcase-meta">Open folder</span>
+                        </div>
                     </a>
                 </article>
             }
