@@ -14,6 +14,7 @@ namespace LiveMap.Web.Models.Profile
         public int FriendsCount { get; set; }
         public bool IsOwnProfile { get; set; }
         public bool IsFollowedByCurrentUser { get; set; }
+        public bool IsAdminProfile { get; set; }
         public ICollection<ProfileFolderViewModel> Folders { get; set; } = new List<ProfileFolderViewModel>();
         public FolderCreateDto NewFolder { get; set; } = new();
     }

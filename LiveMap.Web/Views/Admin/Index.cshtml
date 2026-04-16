@@ -144,7 +144,7 @@
             <div class="admin-panel-head">
                 <div>
                     <p class="admin-panel-kicker">Photos</p>
-                    <h2>Compact photo review</h2>
+                    <h2>Latest uploaded photos</h2>
                 </div>
                 <span class="admin-count-pill">@Model.Photos.Count items</span>
             </div>
@@ -161,6 +161,7 @@
                             <div class="admin-photo-meta">
                                 <div class="admin-photo-owner">@photo.Username</div>
                                 <div class="admin-photo-folder">@photo.FolderName</div>
+                                <div class="admin-row-subtitle">@photo.CreatedOn.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</div>
                             </div>
                             <div class="admin-photo-actions">
                                 <a asp-controller="Profile" asp-action="Details" asp-route-id="@photo.ProfileId" class="btn btn-sm btn-outline-secondary">Profile</a>

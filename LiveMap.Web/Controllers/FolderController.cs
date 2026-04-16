@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using LiveMap.Core.Services;
 
 namespace LiveMap.Web.Controllers
 {
@@ -37,6 +38,12 @@ namespace LiveMap.Web.Controllers
 
         public async Task<IActionResult> Create(Guid? parentFolderId = null)
         {
+            var currentUserId = GetCurrentUserId();
+            if (currentUserId == null || await IsAdminUserAsync(currentUserId.Value))
+            {
+                return Forbid();
+            }
+
             await PopulateCreateViewDataAsync(parentFolderId, !parentFolderId.HasValue);
             return View(new FolderCreateDto { ParentFolderId = parentFolderId, IsCountryFolder = !parentFolderId.HasValue });
         }
@@ -58,6 +65,10 @@ namespace LiveMap.Web.Controllers
             }
 
             var userId = Guid.Parse(userIdString);
+            if (await IsAdminUserAsync(userId))
+            {
+                return Forbid();
+            }
 
             try
             {
@@ -88,6 +99,7 @@ namespace LiveMap.Web.Controllers
             }
 
             var isOwner = currentUserId.HasValue && folder.Profile.UserId == currentUserId.Value;
+            var currentUserIsAdmin = currentUserId.HasValue && await IsAdminUserAsync(currentUserId.Value);
             var canSeeFriendsOnly = isOwner || await IsFriendAsync(folder.Profile.UserId, currentUserId);
 
             var model = new FolderDetailsViewModel
@@ -110,7 +122,7 @@ namespace LiveMap.Web.Controllers
                         LikesCount = p.Likes.Count,
                         CommentsCount = p.Comments.Count,
                         IsLikedByCurrentUser = currentUserId.HasValue && p.Likes.Any(l => l.UserId == currentUserId.Value),
-                        CanInteract = currentUserId.HasValue && !isOwner,
+                        CanInteract = currentUserId.HasValue && !currentUserIsAdmin && !isOwner,
                         Comments = p.Comments
                             .OrderByDescending(c => c.CreatedOn)
                             .Take(5)
@@ -161,7 +173,7 @@ namespace LiveMap.Web.Controllers
             }
 
             var currentUserId = GetCurrentUserId();
-            if (currentUserId == null || folder.Profile.UserId != currentUserId.Value)
+            if (currentUserId == null || folder.Profile.UserId != currentUserId.Value || await IsAdminUserAsync(currentUserId.Value))
             {
                 return Forbid();
             }
@@ -196,7 +208,7 @@ namespace LiveMap.Web.Controllers
 
             var folder = await folderService.GetByIdAsync(model.FolderId);
             var currentUserId = GetCurrentUserId();
-            if (folder == null || currentUserId == null || folder.Profile.UserId != currentUserId.Value)
+            if (folder == null || currentUserId == null || folder.Profile.UserId != currentUserId.Value || await IsAdminUserAsync(currentUserId.Value))
             {
                 return Forbid();
             }
@@ -231,7 +243,7 @@ namespace LiveMap.Web.Controllers
             }
 
             var currentUserId = GetCurrentUserId();
-            if (currentUserId == null || folder.Profile.UserId != currentUserId.Value)
+            if (currentUserId == null || folder.Profile.UserId != currentUserId.Value || await IsAdminUserAsync(currentUserId.Value))
             {
                 return Forbid();
             }
@@ -263,7 +275,7 @@ namespace LiveMap.Web.Controllers
             }
 
             var currentUserId = GetCurrentUserId();
-            if (currentUserId == null || folder.Profile.UserId != currentUserId.Value)
+            if (currentUserId == null || folder.Profile.UserId != currentUserId.Value || await IsAdminUserAsync(currentUserId.Value))
             {
                 return Forbid();
             }
@@ -351,6 +363,10 @@ namespace LiveMap.Web.Controllers
         private async Task<bool> CanViewFolderAsync(Folder folder, Guid? currentUserId)
         {
             var isOwner = currentUserId.HasValue && folder.Profile.UserId == currentUserId.Value;
+            if (await IsAdminUserAsync(folder.Profile.UserId) && !isOwner)
+            {
+                return false;
+            }
             if (isOwner)
             {
                 return true;
@@ -367,6 +383,12 @@ namespace LiveMap.Web.Controllers
             }
 
             return await IsFriendAsync(folder.Profile.UserId, currentUserId);
+        }
+
+        private Task<bool> IsAdminUserAsync(Guid userId)
+        {
+            return context.UserRoles
+                .AnyAsync(ur => ur.UserId == userId && context.Roles.Any(r => r.Id == ur.RoleId && r.Name == AdminService.AdminRoleName));
         }
 
         private async Task<bool> IsFriendAsync(Guid ownerUserId, Guid? currentUserId)

@@ -10,7 +10,7 @@
             <h1 class="country-gallery-title"><span aria-hidden="true">@Model.CountryFlagEmoji</span> @Model.CountryName</h1>
             <p class="country-gallery-subtitle">
                 Showing images that belong to public folders named @Model.CountryName.
-                Clicking a card opens the creator profile.
+                Cards now follow the same visual language as the Explore feed.
             </p>
         </div>
         <a asp-controller="Home" asp-action="Index" class="btn btn-outline-primary">Back to home</a>
@@ -18,35 +18,86 @@
 
     @if (Model.Images.Any())
     {
-        <div class="country-gallery-grid">
+        <section class="explore-feed-grid country-gallery-feed-grid">
             @foreach (var image in Model.Images)
             {
-                <a asp-controller="Profile"
-                   asp-action="Details"
-                   asp-route-id="@image.ProfileId"
-                   class="country-image-card text-decoration-none">
-                    <div class="country-image-frame">
-                        <img src="@image.ImageUrl" alt="@Model.CountryName" class="country-image-preview" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='/images/travel-placeholder.jpg';" />
-                    </div>
-                    <div class="country-image-body">
-                        <div class="country-image-meta-row">
-                            <img src="@(string.IsNullOrWhiteSpace(image.ProfilePicture) ? "/images/default.jpeg" : image.ProfilePicture)"
-                                 alt="@image.Username profile picture"
-                                 class="creator-avatar" />
-                            <div>
-                                <p class="creator-name">@image.Username</p>
-                                <p class="creator-folder">Folder: @image.FolderName</p>
-                                <p class="creator-folder">♥ @image.LikesCount · 💬 @image.CommentsCount</p>
-                            </div>
+                <article class="explore-spotlight-card country-explore-card">
+                    <div class="explore-spotlight-media-wrap">
+                        <img src="@image.ImageUrl" class="explore-spotlight-media" alt="@Model.CountryName image" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='/images/travel-placeholder.jpg';" />
+                        <div class="explore-spotlight-overlay">
+                            <span class="explore-overlay-pill">@image.FolderName</span>
+                            <span class="explore-overlay-pill is-ghost">@image.CreatedOn.ToLocalTime().ToString("dd MMM yyyy")</span>
                         </div>
+                    </div>
+
+                    <div class="explore-spotlight-body">
+                        <div class="explore-creator-row">
+                            <div class="explore-creator-main">
+                                <img src="@(string.IsNullOrWhiteSpace(image.ProfilePicture) ? "/images/default.jpeg" : image.ProfilePicture)"
+                                     alt="@image.Username avatar"
+                                     class="explore-creator-avatar" />
+                                <div>
+                                    <div class="explore-creator-name">@image.Username</div>
+                                    <div class="explore-creator-meta">♥ @image.LikesCount · 💬 @image.CommentsCount</div>
+                                </div>
+                            </div>
+                            <a asp-controller="Profile" asp-action="Details" asp-route-id="@image.ProfileId" class="explore-mini-link">Profile</a>
+                        </div>
+
                         @if (!string.IsNullOrWhiteSpace(image.Description))
                         {
-                            <p class="mt-2 mb-0 text-body-secondary">@image.Description</p>
+                            <p class="explore-spotlight-description">@image.Description</p>
+                        }
+                        else
+                        {
+                            <p class="explore-spotlight-description is-muted">A clean travel memory from @image.Username's public folder collection.</p>
+                        }
+
+                        @if (image.CanInteract)
+                        {
+                            <div class="explore-action-strip">
+                                <form asp-controller="Picture" asp-action="ToggleLike" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@image.PictureId" />
+                                    <input type="hidden" name="folderId" value="@image.FolderId" />
+                                    <button type="submit" class="explore-icon-button @(image.IsLikedByCurrentUser ? "is-liked" : "")">♥ <span>@(image.IsLikedByCurrentUser ? "Liked" : "Like")</span></button>
+                                </form>
+                                <a class="explore-icon-button is-secondary" href="#country-comments-@image.PictureId">💬 <span>Comment</span></a>
+                                <a asp-controller="Folder" asp-action="Details" asp-route-id="@image.FolderId" class="explore-icon-button is-secondary">↗ <span>Open folder</span></a>
+                            </div>
+
+                            <form asp-controller="Picture" asp-action="AddComment" method="post" class="explore-comment-form" id="country-comments-@image.PictureId">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@image.PictureId" />
+                                <input type="hidden" name="folderId" value="@image.FolderId" />
+                                <input type="text" name="content" class="form-control" maxlength="500" placeholder="Drop a quick comment..." />
+                                <button type="submit" class="btn btn-outline-primary">Post</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <div class="explore-action-strip">
+                                <a asp-controller="Folder" asp-action="Details" asp-route-id="@image.FolderId" class="explore-icon-button is-secondary">↗ <span>Open folder</span></a>
+                                <a asp-controller="Profile" asp-action="Details" asp-route-id="@image.ProfileId" class="explore-icon-button is-secondary">👤 <span>Open profile</span></a>
+                            </div>
+                        }
+
+                        @if (image.Comments.Any())
+                        {
+                            <div class="explore-comment-stack">
+                                @foreach (var comment in image.Comments)
+                                {
+                                    <div class="explore-comment-bubble">
+                                        <strong>@comment.Username</strong>
+                                        <span>@comment.Content</span>
+                                    </div>
+                                }
+                            </div>
                         }
                     </div>
-                </a>
+                </article>
             }
-        </div>
+        </section>
     }
     else
     {

@@ -61,7 +61,12 @@ namespace LiveMap.Core.Services
                     .ToListAsync(),
 
                 Photos = await context.Pictures
-                    .OrderByDescending(p => p.Id)
+                    .Include(p => p.Folder)
+                        .ThenInclude(f => f.Profile)
+                            .ThenInclude(pr => pr.User)
+                    .AsNoTracking()
+                    .OrderByDescending(p => p.CreatedOn)
+                    .ThenByDescending(p => p.Id)
                     .Select(p => new AdminPhotoItemDto
                     {
                         Id = p.Id,
@@ -69,7 +74,8 @@ namespace LiveMap.Core.Services
                         FolderId = p.FolderId,
                         FolderName = p.Folder.Name,
                         ProfileId = p.Folder.ProfileId,
-                        Username = p.Folder.Profile.User.UserName ?? string.Empty
+                        Username = p.Folder.Profile.User.UserName ?? string.Empty,
+                        CreatedOn = p.CreatedOn
                     })
                     .ToListAsync()
             };

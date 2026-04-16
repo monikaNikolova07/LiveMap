@@ -86,6 +86,38 @@ public static class CountryUiHelper
         return first + second;
     }
 
+
+
+    public static string GetFlagPaletteStyle(Country country)
+    {
+        return country switch
+        {
+            Country.China => "background: linear-gradient(135deg, rgba(222,41,16,0.96) 0%, rgba(222,41,16,0.92) 72%, rgba(255,222,0,0.88) 100%);",
+            Country.Italy => "background: linear-gradient(90deg, rgba(0,146,70,0.72) 0%, rgba(255,255,255,0.78) 50%, rgba(206,43,55,0.72) 100%);",
+            Country.France => "background: linear-gradient(90deg, rgba(0,85,164,0.74) 0%, rgba(255,255,255,0.8) 50%, rgba(239,65,53,0.72) 100%);",
+            Country.Germany => "background: linear-gradient(180deg, rgba(0,0,0,0.82) 0%, rgba(221,0,0,0.66) 54%, rgba(255,206,0,0.78) 100%);",
+            Country.Bulgaria => "background: linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(0,150,110,0.72) 54%, rgba(214,38,18,0.72) 100%);",
+            Country.Argentina => "background: linear-gradient(180deg, rgba(116,172,223,0.8) 0%, rgba(255,255,255,0.86) 50%, rgba(116,172,223,0.8) 100%);",
+            Country.Belarus => "background: linear-gradient(180deg, rgba(200,33,46,0.78) 0%, rgba(200,33,46,0.7) 58%, rgba(0,146,70,0.62) 58%, rgba(0,146,70,0.66) 100%);",
+            Country.Afghanistan => "background: linear-gradient(90deg, rgba(0,0,0,0.74) 0%, rgba(190,0,0,0.68) 50%, rgba(18,123,61,0.7) 100%);",
+            Country.Romania => "background: linear-gradient(90deg, rgba(0,43,127,0.72) 0%, rgba(252,209,22,0.76) 50%, rgba(206,17,38,0.72) 100%);",
+            Country.Belgium => "background: linear-gradient(90deg, rgba(0,0,0,0.74) 0%, rgba(253,218,36,0.78) 50%, rgba(239,51,64,0.72) 100%);",
+            Country.Netherlands => "background: linear-gradient(180deg, rgba(174,28,40,0.72) 0%, rgba(255,255,255,0.84) 50%, rgba(33,70,139,0.72) 100%);",
+            Country.Ireland => "background: linear-gradient(90deg, rgba(22,155,98,0.72) 0%, rgba(255,255,255,0.84) 50%, rgba(255,136,62,0.72) 100%);",
+            Country.Hungary => "background: linear-gradient(180deg, rgba(205,42,62,0.72) 0%, rgba(255,255,255,0.84) 50%, rgba(67,111,77,0.72) 100%);",
+            Country.Poland => "background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(220,20,60,0.64) 100%);",
+            Country.Ukraine => "background: linear-gradient(180deg, rgba(0,91,187,0.72) 0%, rgba(255,213,0,0.74) 100%);",
+            Country.Russia => "background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(0,57,166,0.68) 50%, rgba(213,43,30,0.68) 100%);",
+            Country.Austria => "background: linear-gradient(180deg, rgba(237,41,57,0.7) 0%, rgba(255,255,255,0.84) 50%, rgba(237,41,57,0.7) 100%);",
+            Country.Japan => "background: radial-gradient(circle at 50% 50%, rgba(188,0,45,0.45) 0 16%, rgba(255,255,255,0.88) 17% 100%);",
+            Country.Brazil => "background: linear-gradient(135deg, rgba(0,156,59,0.8) 0%, rgba(255,223,0,0.64) 50%, rgba(0,39,118,0.72) 100%);",
+            Country.Greece => "background: linear-gradient(180deg, rgba(13,94,175,0.74) 0%, rgba(255,255,255,0.86) 50%, rgba(13,94,175,0.74) 100%);",
+            Country.Spain => "background: linear-gradient(180deg, rgba(170,21,27,0.72) 0%, rgba(241,191,0,0.78) 50%, rgba(170,21,27,0.72) 100%);",
+            Country.Portugal => "background: linear-gradient(90deg, rgba(0,102,0,0.76) 0%, rgba(0,102,0,0.7) 42%, rgba(255,0,0,0.66) 42%, rgba(255,0,0,0.7) 100%);",
+            _ => "background: linear-gradient(135deg, rgba(99,103,255,0.72) 0%, rgba(255,255,255,0.8) 50%, rgba(255,215,253,0.68) 100%);"
+        };
+    }
+
     public static bool TryParseCountry(string? value, out Country country)
     {
         country = default;

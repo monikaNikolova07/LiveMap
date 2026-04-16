@@ -1,6 +1,7 @@
 @model LiveMap.Web.Models.Profile.ProfileSearchPageViewModel
 @{
     ViewData["Title"] = "Search users";
+    var currentUserIsAdmin = User.IsInRole("Admin");
 }
 
 <section class="search-users-shell">
@@ -63,7 +64,8 @@
 
                             <div class="search-user-actions">
                                 <a asp-action="Details" asp-route-id="@user.Id" class="btn btn-outline-primary btn-sm">Open profile</a>
-                                @if ((User.Identity?.IsAuthenticated ?? false) && !user.IsOwnProfile)
+
+                                @if ((User.Identity?.IsAuthenticated ?? false) && !user.IsOwnProfile && !currentUserIsAdmin)
                                 {
                                     @if (user.IsFollowedByCurrentUser)
                                     {

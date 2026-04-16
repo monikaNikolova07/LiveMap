@@ -2,6 +2,7 @@ using System.Security.Claims;
 using LiveMap.Data;
 using LiveMap.Data.Models;
 using LiveMap.Web.Helpers;
+using LiveMap.Core.Services;
 using LiveMap.Web.Models.TravelMap;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -33,6 +34,14 @@ namespace LiveMap.Web.Controllers
             if (userId == Guid.Empty)
             {
                 return Challenge();
+            }
+
+            var isAdmin = await context.UserRoles
+                .AnyAsync(ur => ur.UserId == userId && context.Roles.Any(r => r.Id == ur.RoleId && r.Name == AdminService.AdminRoleName));
+
+            if (isAdmin)
+            {
+                return RedirectToAction("Index", "Admin");
             }
 
             var folders = await context.Folders
@@ -92,6 +101,14 @@ namespace LiveMap.Web.Controllers
             if (userId == Guid.Empty)
             {
                 return Unauthorized();
+            }
+
+            var isAdmin = await context.UserRoles
+                .AnyAsync(ur => ur.UserId == userId && context.Roles.Any(r => r.Id == ur.RoleId && r.Name == AdminService.AdminRoleName));
+
+            if (isAdmin)
+            {
+                return Forbid();
             }
 
             if (request == null || !CountryUiHelper.TryParseCountry(request.Country, out var country))

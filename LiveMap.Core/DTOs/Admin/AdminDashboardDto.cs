@@ -35,5 +35,6 @@ namespace LiveMap.Core.DTOs.Admin
         public string FolderName { get; set; } = string.Empty;
         public Guid ProfileId { get; set; }
         public string Username { get; set; } = string.Empty;
+        public DateTime CreatedOn { get; set; }
     }
 }

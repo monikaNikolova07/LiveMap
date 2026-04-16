@@ -21,7 +21,7 @@
         <header class="app-header">
             <nav class="navbar navbar-expand-lg app-navbar">
                 <div class="container-fluid app-navbar-inner">
-                    <a class="navbar-brand app-brand" asp-controller="Home" asp-action="Index">
+                    <a class="navbar-brand app-brand" asp-controller="@(User.IsInRole("Admin") ? "Admin" : "Home")" asp-action="Index">
                         <span class="app-brand-mark"></span>
                         <span>
                             <strong>LiveMap</strong>
@@ -36,40 +36,47 @@
 
                     <div class="collapse navbar-collapse" id="mainNavbar">
                         <ul class="navbar-nav app-nav-links me-auto mb-2 mb-lg-0">
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Discover
-                                </a>
-                                <ul class="dropdown-menu app-dropdown-menu">
-                                    <li><a class="dropdown-item" asp-controller="Home" asp-action="Explore">Explore feed</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Home" asp-action="Index">Country galleries</a></li>
-                                    @if (User?.Identity?.IsAuthenticated ?? false)
-                                    {
-                                        <li><a class="dropdown-item" asp-controller="Profile" asp-action="Search">Search users</a></li>
-                                    }
-                                </ul>
-                            </li>
-
-                            @if (User?.Identity?.IsAuthenticated ?? false)
+                            @if (User.IsInRole("Admin"))
                             {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Admin" asp-action="Index">Admin Panel</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Profile" asp-action="Index">Admin Profile</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
+                                </li>
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        My space
+                                        Discover
                                     </a>
                                     <ul class="dropdown-menu app-dropdown-menu">
-                                        <li><a class="dropdown-item" asp-controller="Profile" asp-action="Index">Profile</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Profile" asp-action="Notifications">Notifications</a></li>
-                                        <li><a class="dropdown-item" asp-controller="TravelMap" asp-action="Index">Passport Palette</a></li>
-                                        @if (User.IsInRole("Admin"))
+                                        <li><a class="dropdown-item" asp-controller="Home" asp-action="Explore">Explore feed</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Home" asp-action="Index">Country galleries</a></li>
+                                        @if (User?.Identity?.IsAuthenticated ?? false)
                                         {
-                                            <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Index">Admin Panel</a></li>
+                                            <li><a class="dropdown-item" asp-controller="Profile" asp-action="Search">Search users</a></li>
                                         }
                                     </ul>
                                 </li>
+
+                                @if (User?.Identity?.IsAuthenticated ?? false)
+                                {
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            My space
+                                        </a>
+                                        <ul class="dropdown-menu app-dropdown-menu">
+                                            <li><a class="dropdown-item" asp-controller="Profile" asp-action="Index">Profile</a></li>
+                                            <li><a class="dropdown-item" asp-controller="Profile" asp-action="Notifications">Notifications</a></li>
+                                            <li><a class="dropdown-item" asp-controller="TravelMap" asp-action="Index">Passport Palette</a></li>
+                                        </ul>
+                                    </li>
+                                }
                             }
                         </ul>
 

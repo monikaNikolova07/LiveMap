@@ -1,11 +1,11 @@
 @model LiveMap.Web.Models.Profile.ProfileViewModel
 @{
     var isPublicProfile = !Model.IsOwnProfile;
-    ViewData["Title"] = isPublicProfile ? $"{Model.Username} Profile" : "My Profile";
+    ViewData["Title"] = Model.IsAdminProfile ? "Admin Profile" : (isPublicProfile ? $"{Model.Username} Profile" : "My Profile");
 }
 
 <section class="profile-page profile-showcase-page">
-    <div class="profile-showcase-hero">
+    <div class="profile-showcase-hero @(Model.IsAdminProfile ? "profile-admin-hero" : string.Empty)">
         <div class="profile-showcase-copy">
             <div class="profile-avatar-shell">
                 <img src="@(string.IsNullOrWhiteSpace(Model.ProfilePicture) ? "/images/default.jpeg" : Model.ProfilePicture)"
@@ -15,17 +15,25 @@
             </div>
 
             <div class="profile-showcase-heading">
-                <p class="profile-eyebrow">@(isPublicProfile ? "Creator profile" : "Your personal space")</p>
+                <p class="profile-eyebrow">@(Model.IsAdminProfile ? "Protected administrator account" : (isPublicProfile ? "Creator profile" : "Your personal space"))</p>
                 <h1 class="profile-title profile-showcase-title">@Model.Username</h1>
-                <p class="profile-bio profile-showcase-bio">@(string.IsNullOrWhiteSpace(Model.Bio) ? "No bio added yet." : Model.Bio)</p>
+                <p class="profile-bio profile-showcase-bio">
+                    @(string.IsNullOrWhiteSpace(Model.Bio)
+                        ? (Model.IsAdminProfile ? "This account manages the platform and stays hidden from the public side of LiveMap." : "No bio added yet.")
+                        : Model.Bio)
+                </p>
             </div>
 
             <div class="profile-showcase-actions">
-                @if (Model.IsOwnProfile)
+                @if (Model.IsAdminProfile)
+                {
+                    <a asp-controller="Admin" asp-action="Index" class="btn btn-primary profile-main-cta">Open admin panel</a>
+                }
+                else if (Model.IsOwnProfile)
                 {
                     <a asp-action="Edit" class="btn btn-primary profile-main-cta">Edit Profile</a>
                 }
-                else if (User.Identity?.IsAuthenticated ?? false)
+                else if ((User.Identity?.IsAuthenticated ?? false) && !User.IsInRole("Admin"))
                 {
                     if (Model.IsFollowedByCurrentUser)
                     {
@@ -46,34 +54,53 @@
         </div>
 
         <div class="profile-showcase-panel">
-            <div class="profile-panel-badge">Live identity</div>
-            <div class="profile-stats-grid profile-stats-grid-showcase">
-                <a asp-action="Connections" asp-route-id="@Model.Id" asp-route-type="followers" class="profile-stat-card profile-stat-card-link text-decoration-none">
-                    <div class="profile-stat-label">Followers</div>
-                    <div class="profile-stat-value">@Model.FollowersCount</div>
-                </a>
-                <a asp-action="Connections" asp-route-id="@Model.Id" asp-route-type="following" class="profile-stat-card profile-stat-card-link text-decoration-none">
-                    <div class="profile-stat-label">Following</div>
-                    <div class="profile-stat-value">@Model.FollowingCount</div>
-                </a>
-                <a asp-action="Connections" asp-route-id="@Model.Id" asp-route-type="friends" class="profile-stat-card profile-stat-card-link text-decoration-none">
-                    <div class="profile-stat-label">Friends</div>
-                    <div class="profile-stat-value">@Model.FriendsCount</div>
-                </a>
-            </div>
+            <div class="profile-panel-badge">@(Model.IsAdminProfile ? "Admin mode" : "Live identity")</div>
 
-            <div class="profile-mini-storyboard">
-                <div class="profile-mini-story-card">
-                    <span>Folders</span>
-                    <strong>@(Model.Folders?.Count ?? 0)</strong>
-                    <small>collections ready to open</small>
+            @if (Model.IsAdminProfile)
+            {
+                <div class="admin-profile-note-grid">
+                    <div class="profile-mini-story-card">
+                        <span>Visibility</span>
+                        <strong>Hidden</strong>
+                        <small>other users cannot open this profile</small>
+                    </div>
+                    <div class="profile-mini-story-card is-soft">
+                        <span>Social actions</span>
+                        <strong>Disabled</strong>
+                        <small>no follow, followers or folders</small>
+                    </div>
                 </div>
-                <div class="profile-mini-story-card is-soft">
-                    <span>Presence</span>
-                    <strong>@(isPublicProfile ? "Public" : "Owner")</strong>
-                    <small>@(isPublicProfile ? "creator view" : "editing mode")</small>
+            }
+            else
+            {
+                <div class="profile-stats-grid profile-stats-grid-showcase">
+                    <a asp-action="Connections" asp-route-id="@Model.Id" asp-route-type="followers" class="profile-stat-card profile-stat-card-link text-decoration-none">
+                        <div class="profile-stat-label">Followers</div>
+                        <div class="profile-stat-value">@Model.FollowersCount</div>
+                    </a>
+                    <a asp-action="Connections" asp-route-id="@Model.Id" asp-route-type="following" class="profile-stat-card profile-stat-card-link text-decoration-none">
+                        <div class="profile-stat-label">Following</div>
+                        <div class="profile-stat-value">@Model.FollowingCount</div>
+                    </a>
+                    <a asp-action="Connections" asp-route-id="@Model.Id" asp-route-type="friends" class="profile-stat-card profile-stat-card-link text-decoration-none">
+                        <div class="profile-stat-label">Friends</div>
+                        <div class="profile-stat-value">@Model.FriendsCount</div>
+                    </a>
                 </div>
-            </div>
+
+                <div class="profile-mini-storyboard">
+                    <div class="profile-mini-story-card">
+                        <span>Folders</span>
+                        <strong>@(Model.Folders?.Count ?? 0)</strong>
+                        <small>collections ready to open</small>
+                    </div>
+                    <div class="profile-mini-story-card is-soft">
+                        <span>Presence</span>
+                        <strong>@(isPublicProfile ? "Public" : "Owner")</strong>
+                        <small>@(isPublicProfile ? "creator view" : "editing mode")</small>
+                    </div>
+                </div>
+            }
         </div>
 
         <div class="profile-hero-orb one"></div>
@@ -82,22 +109,30 @@
 
     <div class="section-heading-row profile-folders-topbar">
         <div>
-            <p class="section-eyebrow">Folder universe</p>
-            <h2 class="section-title">@(isPublicProfile ? "Visible folders" : "My folders")</h2>
+            <p class="section-eyebrow">@(Model.IsAdminProfile ? "Control center" : "Folder universe")</p>
+            <h2 class="section-title">@(Model.IsAdminProfile ? "Administrator tools" : (isPublicProfile ? "Visible folders" : "My folders"))</h2>
         </div>
 
-        @if (Model.IsOwnProfile)
+        @if (Model.IsOwnProfile && !Model.IsAdminProfile)
         {
             <a asp-controller="Folder" asp-action="Create" class="btn btn-success">Create folder</a>
         }
     </div>
 
-    @if (Model.Folders != null && Model.Folders.Any())
+    @if (Model.IsAdminProfile)
     {
-        <div class="folder-shortcut-grid profile-folder-grid-upgraded">
+        <div class="empty-state-card admin-profile-special-card">
+            <h3>Administrator profile is intentionally separate from the public travel space.</h3>
+            <p class="mb-3">This account can access moderation and management tools, but it cannot follow users, be followed, or build public folder galleries.</p>
+            <a asp-controller="Admin" asp-action="Index" class="btn btn-primary">Go to admin dashboard</a>
+        </div>
+    }
+    else if (Model.Folders != null && Model.Folders.Any())
+    {
+        <div class="folder-shortcut-grid profile-folder-grid-upgraded profile-folder-simple-grid">
             @foreach (var folder in Model.Folders)
             {
-                <article class="folder-showcase-card">
+                <article class="folder-showcase-card folder-simple-card">
                     @if (Model.IsOwnProfile)
                     {
                         <div class="folder-card-actions">
@@ -117,18 +152,12 @@
                         </div>
                     }
 
-                    <a asp-controller="Folder" asp-action="Details" asp-route-id="@folder.Id" class="folder-shortcut-link folder-showcase-link folder-showcase-link-modern" aria-label="Open @folder.Name folder">
-                        <div class="folder-showcase-topline">
-                            <span class="folder-showcase-symbol" aria-hidden="true">✦</span>
-                            <span class="folder-showcase-arrow">↗</span>
-                        </div>
-                        <div class="folder-showcase-body">
-                            <span class="folder-shortcut-name">@folder.Name</span>
-                            <span class="folder-showcase-subtitle">Travel memories, organized in one elegant collection.</span>
-                        </div>
-                        <div class="folder-showcase-footer">
-                            <span class="badge text-bg-light">@folder.AccessibilityLabel</span>
-                            <span class="folder-showcase-meta">Open folder</span>
+                    <a asp-controller="Folder" asp-action="Details" asp-route-id="@folder.Id" class="folder-shortcut-link folder-showcase-link folder-simple-link" aria-label="Open @folder.Name folder">
+                        <div class="folder-simple-center">
+                            <span class="folder-simple-icon" aria-hidden="true">📁</span>
+                            <div class="folder-showcase-body folder-showcase-body-centered">
+                                <span class="folder-shortcut-name folder-shortcut-name-simple">@folder.Name</span>
+                            </div>
                         </div>
                     </a>
                 </article>

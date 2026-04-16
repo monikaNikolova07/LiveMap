@@ -2479,3 +2479,275 @@ img.rounded-circle,
     display: none;
   }
 }
+
+/* Admin profile + upgraded folder cards */
+.profile-admin-hero {
+  background: linear-gradient(135deg, rgba(35, 43, 82, 0.98), rgba(99, 103, 255, 0.92));
+  color: #fff;
+}
+
+.profile-admin-hero .profile-showcase-title,
+.profile-admin-hero .profile-bio,
+.profile-admin-hero .profile-eyebrow,
+.profile-admin-hero .profile-panel-badge,
+.profile-admin-hero .profile-mini-story-card span,
+.profile-admin-hero .profile-mini-story-card small,
+.profile-admin-hero .profile-mini-story-card strong {
+  color: #fff;
+}
+
+.admin-profile-note-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.admin-profile-special-card {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+}
+
+.profile-folder-flag-grid {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.folder-flag-card {
+  overflow: hidden;
+}
+
+.folder-flag-link {
+  min-height: 220px;
+  color: #1e2447;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.folder-flag-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.22), rgba(255,255,255,0.78));
+  pointer-events: none;
+}
+
+.folder-flag-link > * {
+  position: relative;
+  z-index: 1;
+}
+
+.folder-flag-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.folder-flag-icon {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.78);
+  font-size: 1.6rem;
+  box-shadow: 0 12px 24px rgba(30, 36, 71, 0.12);
+}
+
+.folder-flag-emoji {
+  font-size: 1.5rem;
+  background: rgba(255,255,255,0.72);
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+}
+
+.country-gallery-feed-grid .explore-spotlight-card {
+  height: 100%;
+}
+
+.country-explore-card .explore-action-strip {
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .admin-profile-note-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* Simplified country folder cards */
+.folder-showcase-card.folder-flag-card {
+  padding: 0.85rem;
+  background: rgba(255,255,255,0.52);
+  border: 1px solid rgba(99,103,255,0.12);
+  box-shadow: 0 16px 34px rgba(99,103,255,0.08);
+}
+
+.folder-flag-link.folder-flag-link-minimal {
+  min-height: 220px;
+  border-radius: 28px !important;
+  border: 1px solid rgba(255,255,255,0.58);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
+  text-decoration: none;
+  color: #16204a;
+}
+
+.folder-flag-link.folder-flag-link-minimal::after {
+  background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.24) 52%, rgba(255,255,255,0.12));
+}
+
+.folder-flag-center {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.95rem;
+}
+
+.folder-showcase-body-centered {
+  justify-items: center;
+}
+
+.folder-showcase-body-centered .folder-shortcut-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #16204a;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.35);
+}
+
+.folder-flag-link.folder-flag-link-minimal .folder-flag-icon {
+  font-size: 4.4rem;
+  line-height: 1;
+  filter: drop-shadow(0 10px 14px rgba(30,36,71,0.14));
+}
+
+.folder-flag-link.folder-flag-link-minimal .folder-flag-icon-plain {
+  width: auto;
+  height: auto;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  display: block;
+}
+
+.folder-flag-link.folder-flag-link-minimal:hover {
+  color: #16204a;
+}
+
+.folder-flag-link.folder-flag-link-minimal:hover .folder-flag-icon {
+  transform: translateY(-2px) scale(1.02);
+}
+
+@media (max-width: 768px) {
+  .folder-showcase-body-centered .folder-shortcut-name {
+    font-size: 1.08rem;
+  }
+
+  .folder-flag-link.folder-flag-link-minimal .folder-flag-icon {
+    font-size: 3.6rem;
+  }
+
+  .folder-flag-link.folder-flag-link-minimal {
+    min-height: 180px;
+  }
+}
+
+
+/* Final profile folder cards: plain folder emoji only */
+.profile-folder-simple-grid {
+  gap: 1.5rem;
+}
+
+.folder-simple-card {
+  padding: 0.8rem;
+  background: rgba(255,255,255,0.58);
+  border: 1px solid rgba(99,103,255,0.12);
+  box-shadow: 0 16px 34px rgba(99,103,255,0.08);
+}
+
+.folder-simple-link {
+  min-height: 210px;
+  border-radius: 28px !important;
+  border: 1px solid rgba(99,103,255,0.12);
+  background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(246,244,255,0.88));
+  color: #16204a;
+  text-decoration: none;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.34);
+}
+
+.folder-simple-center {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  text-align: center;
+}
+
+.folder-simple-icon {
+  display: block;
+  font-size: 4.5rem;
+  line-height: 1;
+  filter: drop-shadow(0 10px 14px rgba(30,36,71,0.14));
+}
+
+.folder-shortcut-name-simple {
+  font-size: 1.1rem !important;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #16204a;
+}
+
+.folder-simple-link:hover {
+  color: #16204a;
+}
+
+.folder-simple-link:hover .folder-simple-icon {
+  transform: translateY(-2px) scale(1.02);
+}
+
+/* Country gallery cards should stay like explore feed and never stretch full width */
+.country-gallery-feed-grid {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 360px));
+  justify-content: start;
+}
+
+.country-gallery-feed-grid .explore-spotlight-card {
+  width: 100%;
+  max-width: 360px;
+}
+
+.country-gallery-page .explore-spotlight-media {
+  height: 320px;
+  max-height: 320px;
+}
+
+@media (max-width: 768px) {
+  .folder-simple-link {
+    min-height: 180px;
+  }
+
+  .folder-simple-icon {
+    font-size: 3.8rem;
+  }
+
+  .folder-shortcut-name-simple {
+    font-size: 1rem !important;
+  }
+
+  .country-gallery-feed-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .country-gallery-feed-grid .explore-spotlight-card {
+    max-width: none;
+  }
+}

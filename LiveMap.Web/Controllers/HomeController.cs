@@ -1,6 +1,7 @@
 
 using System.Diagnostics;
 using System.Security.Claims;
+using LiveMap.Core.Services;
 using LiveMap.Data;
 using LiveMap.Data.Models;
 using LiveMap.Web.Helpers;
@@ -24,6 +25,11 @@ namespace LiveMap.Web.Controllers
 
         public IActionResult Index()
         {
+            if (User.IsInRole(AdminService.AdminRoleName))
+            {
+                return RedirectToAction("Index", "Admin");
+            }
+
             var model = new HomeIndexViewModel
             {
                 Countries = Enum.GetValues<Country>()
@@ -44,7 +50,13 @@ namespace LiveMap.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Explore(string filter = ExploreFilterOptions.Newest, string? username = null)
         {
+            if (User.IsInRole(AdminService.AdminRoleName))
+            {
+                return RedirectToAction("Index", "Admin");
+            }
+
             var currentUserId = GetCurrentUserId();
+            var currentUserIsAdmin = User.IsInRole(AdminService.AdminRoleName);
             var normalizedFilter = NormalizeFilter(filter);
             var normalizedUsername = (username ?? string.Empty).Trim();
 
@@ -58,6 +70,7 @@ namespace LiveMap.Web.Controllers
                 .Where(p => p.Acssesability == Acssesability.Public)
                 .Where(p => p.Folder.Acssesability == Acssesability.Public)
                 .Where(p => p.Folder.Profile.Acssesability == Acssesability.Public)
+                .Where(p => !_context.UserRoles.Any(ur => ur.UserId == p.Folder.Profile.UserId && _context.Roles.Any(r => r.Id == ur.RoleId && r.Name == AdminService.AdminRoleName)))
                 .ToListAsync();
 
             IEnumerable<Picture> filteredPictures = pictures;
@@ -157,7 +170,7 @@ namespace LiveMap.Web.Controllers
 
             model.Pictures = filteredPictures
                 .Take(48)
-                .Select(p => MapExplorePicture(p, currentUserId))
+                .Select(p => MapExplorePicture(p, currentUserId, currentUserIsAdmin))
                 .ToList();
 
             return View(model);
@@ -166,7 +179,13 @@ namespace LiveMap.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Country(string country)
         {
+            if (User.IsInRole(AdminService.AdminRoleName))
+            {
+                return RedirectToAction("Index", "Admin");
+            }
+
             var currentUserId = GetCurrentUserId();
+            var currentUserIsAdmin = User.IsInRole(AdminService.AdminRoleName);
 
             if (!CountryUiHelper.TryParseCountry(country, out var selectedCountry))
             {
@@ -189,6 +208,7 @@ namespace LiveMap.Web.Controllers
                 .Where(p => p.Acssesability == Acssesability.Public)
                 .Where(p => p.Folder.Acssesability == Acssesability.Public)
                 .Where(p => p.Folder.Profile.Acssesability == Acssesability.Public)
+                .Where(p => !_context.UserRoles.Any(ur => ur.UserId == p.Folder.Profile.UserId && _context.Roles.Any(r => r.Id == ur.RoleId && r.Name == AdminService.AdminRoleName)))
                 .ToListAsync();
 
             var gallery = new CountryGalleryViewModel
@@ -211,7 +231,8 @@ namespace LiveMap.Web.Controllers
                         LikesCount = p.Likes.Count,
                         CommentsCount = p.Comments.Count,
                         IsLikedByCurrentUser = currentUserId.HasValue && p.Likes.Any(l => l.UserId == currentUserId.Value),
-                        CanInteract = currentUserId.HasValue && p.Folder.Profile.UserId != currentUserId.Value,
+                        CanInteract = currentUserId.HasValue && !currentUserIsAdmin && p.Folder.Profile.UserId != currentUserId.Value,
+                        CreatedOn = p.CreatedOn,
                         Comments = p.Comments
                             .OrderByDescending(c => c.CreatedOn)
                             .Take(3)
@@ -240,7 +261,7 @@ namespace LiveMap.Web.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
-        private ExplorePictureViewModel MapExplorePicture(Picture picture, Guid? currentUserId)
+        private ExplorePictureViewModel MapExplorePicture(Picture picture, Guid? currentUserId, bool currentUserIsAdmin)
         {
             return new ExplorePictureViewModel
             {
@@ -257,7 +278,7 @@ namespace LiveMap.Web.Controllers
                 LikesCount = picture.Likes.Count,
                 CommentsCount = picture.Comments.Count,
                 IsLikedByCurrentUser = currentUserId.HasValue && picture.Likes.Any(l => l.UserId == currentUserId.Value),
-                CanInteract = currentUserId.HasValue && picture.Folder.Profile.UserId != currentUserId.Value,
+                CanInteract = currentUserId.HasValue && !currentUserIsAdmin && picture.Folder.Profile.UserId != currentUserId.Value,
                 Comments = picture.Comments
                     .OrderByDescending(c => c.CreatedOn)
                     .Take(3)

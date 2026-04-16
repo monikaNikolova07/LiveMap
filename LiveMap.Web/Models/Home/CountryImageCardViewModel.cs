@@ -14,5 +14,6 @@ public class CountryImageCardViewModel
     public int CommentsCount { get; set; }
     public bool IsLikedByCurrentUser { get; set; }
     public bool CanInteract { get; set; }
+    public DateTime CreatedOn { get; set; }
     public List<ExploreCommentViewModel> Comments { get; set; } = new();
 }

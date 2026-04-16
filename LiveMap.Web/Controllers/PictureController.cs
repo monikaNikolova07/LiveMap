@@ -44,6 +44,17 @@ namespace LiveMap.Web.Controllers
 
         public async Task<IActionResult> EditVisibility(Guid id)
         {
+            var currentUserId = GetCurrentUserId();
+            if (currentUserId == null)
+            {
+                return Unauthorized();
+            }
+
+            if (await IsAdminUserAsync(currentUserId.Value))
+            {
+                return Forbid();
+            }
+
             var picture = await context.Pictures
                 .Include(p => p.Folder)
                     .ThenInclude(f => f.Profile)
@@ -54,8 +65,7 @@ namespace LiveMap.Web.Controllers
                 return NotFound();
             }
 
-            var currentUserId = GetCurrentUserId();
-            if (currentUserId == null || picture.Folder.Profile.UserId != currentUserId.Value)
+            if (picture.Folder.Profile.UserId != currentUserId.Value)
             {
                 return Forbid();
             }
@@ -117,6 +127,11 @@ namespace LiveMap.Web.Controllers
                 return Unauthorized();
             }
 
+            if (await IsAdminUserAsync(currentUserId.Value))
+            {
+                return Forbid();
+            }
+
             var picture = await context.Pictures
                 .Include(p => p.Folder)
                     .ThenInclude(f => f.Profile)
@@ -160,6 +175,11 @@ namespace LiveMap.Web.Controllers
             if (currentUserId == null)
             {
                 return Unauthorized();
+            }
+
+            if (await IsAdminUserAsync(currentUserId.Value))
+            {
+                return Forbid();
             }
 
             var picture = await context.Pictures
@@ -248,6 +268,13 @@ namespace LiveMap.Web.Controllers
                     Text = a == Acssesability.FriendsOnly ? "Friends Only" : a.ToString(),
                     Value = a.ToString()
                 }).ToList();
+        }
+
+
+        private Task<bool> IsAdminUserAsync(Guid userId)
+        {
+            return context.UserRoles
+                .AnyAsync(ur => ur.UserId == userId && context.Roles.Any(r => r.Id == ur.RoleId && r.Name == LiveMap.Core.Services.AdminService.AdminRoleName));
         }
 
         private Guid? GetCurrentUserId()

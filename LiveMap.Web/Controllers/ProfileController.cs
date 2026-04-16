@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;
+using LiveMap.Web.Helpers;
+using LiveMap.Core.Services;
 
 namespace LiveMap.Web.Controllers
 {
@@ -84,6 +86,11 @@ namespace LiveMap.Web.Controllers
                 return Unauthorized();
             }
 
+            if (await IsAdminUserAsync(currentUserId.Value))
+            {
+                return Forbid();
+            }
+
             if (!ModelState.IsValid)
             {
                 var profileId = await context.Profiles.Where(p => p.UserId == currentUserId.Value).Select(p => p.Id).FirstOrDefaultAsync();
@@ -109,7 +116,8 @@ namespace LiveMap.Web.Controllers
             var currentUserId = GetCurrentUserId();
 
             var query = context.Profiles
-                .Where(p => p.Acssesability == Acssesability.Public);
+                .Where(p => p.Acssesability == Acssesability.Public)
+                .Where(p => !context.UserRoles.Any(ur => ur.UserId == p.UserId && context.Roles.Any(r => r.Id == ur.RoleId && r.Name == AdminService.AdminRoleName)));
 
             if (!string.IsNullOrWhiteSpace(term))
             {
@@ -156,6 +164,11 @@ namespace LiveMap.Web.Controllers
                 return NotFound();
             }
 
+            if (await IsAdminUserAsync(targetProfile.UserId) || await IsAdminUserAsync(currentUserId.Value))
+            {
+                return NotFound();
+            }
+
             if (targetProfile.UserId == currentUserId.Value)
             {
                 return RedirectToAction(nameof(Details), new { id });
@@ -196,6 +209,11 @@ namespace LiveMap.Web.Controllers
                 return NotFound();
             }
 
+            if (await IsAdminUserAsync(targetProfile.UserId) || await IsAdminUserAsync(currentUserId.Value))
+            {
+                return NotFound();
+            }
+
             var relation = await context.UserFollowings
                 .FirstOrDefaultAsync(uf => uf.UserId == currentUserId.Value && uf.FolowingId == targetProfile.UserId);
 
@@ -232,7 +250,13 @@ namespace LiveMap.Web.Controllers
                 return NotFound();
             }
 
+            var isAdminProfile = await IsAdminUserAsync(profile.UserId);
             var isOwnProfile = currentUserId != null && profile.UserId == currentUserId.Value;
+            if (isAdminProfile && !isOwnProfile)
+            {
+                return NotFound();
+            }
+
             if (!isOwnProfile && profile.Acssesability != Acssesability.Public)
             {
                 return NotFound();
@@ -312,6 +336,10 @@ namespace LiveMap.Web.Controllers
         public async Task<IActionResult> Notifications()
         {
             var currentUserId = GetCurrentUserId();
+            if (currentUserId.HasValue && await IsAdminUserAsync(currentUserId.Value))
+            {
+                return RedirectToAction("Index", "Admin");
+            }
             if (currentUserId == null)
             {
                 return Unauthorized();
@@ -321,6 +349,7 @@ namespace LiveMap.Web.Controllers
             {
                 Followers = await context.UserFollowings
                     .Where(uf => uf.FolowingId == currentUserId.Value)
+                    .Where(uf => !context.UserRoles.Any(ur => ur.UserId == uf.UserId && context.Roles.Any(r => r.Id == ur.RoleId && r.Name == AdminService.AdminRoleName)))
                     .OrderByDescending(uf => uf.CreatedOn)
                     .Take(50)
                     .Select(uf => new NotificationItemViewModel
@@ -411,6 +440,7 @@ namespace LiveMap.Web.Controllers
 
         private async Task<ProfileViewModel?> BuildProfileViewModelAsync(Guid profileId, Guid? currentUserId, bool publicFoldersOnly)
         {
+            var currentUserIsAdmin = currentUserId.HasValue && await IsAdminUserAsync(currentUserId.Value);
             var profileData = await context.Profiles
                 .Where(p => p.Id == profileId)
                 .Select(p => new
@@ -437,7 +467,14 @@ namespace LiveMap.Web.Controllers
                 return null;
             }
 
+            var isAdminProfile = await IsAdminUserAsync(profileData.UserId);
             var isOwnProfile = currentUserId != null && profileData.UserId == currentUserId.Value;
+
+            if (isAdminProfile && !isOwnProfile)
+            {
+                return null;
+            }
+
             if (publicFoldersOnly && !isOwnProfile && profileData.Acssesability != Acssesability.Public)
             {
                 return null;
@@ -451,24 +488,31 @@ namespace LiveMap.Web.Controllers
             }
 
             var visibleFolders = profileData.Folders
-                .Where(f => isOwnProfile
+                .Where(f => !isAdminProfile && (isOwnProfile
                     || f.Acssesability == Acssesability.Public
-                    || (f.Acssesability == Acssesability.FriendsOnly && areFriends))
-                .Select(f => new ProfileFolderViewModel
+                    || (f.Acssesability == Acssesability.FriendsOnly && areFriends)))
+                .Select(f =>
                 {
-                    Id = f.Id,
-                    Name = f.Name,
-                    AccessibilityLabel = f.Acssesability == Acssesability.FriendsOnly ? "Friends Only" : f.Acssesability.ToString()
+                    var isCountryFolder = CountryUiHelper.TryParseCountry(f.Name, out var country);
+                    return new ProfileFolderViewModel
+                    {
+                        Id = f.Id,
+                        Name = f.Name,
+                        AccessibilityLabel = f.Acssesability == Acssesability.FriendsOnly ? "Friends Only" : f.Acssesability.ToString(),
+                        IsCountryFolder = isCountryFolder,
+                        FlagEmoji = isCountryFolder ? CountryUiHelper.GetFlagEmoji(country) : "📁",
+                        FlagPaletteStyle = isCountryFolder ? CountryUiHelper.GetFlagPaletteStyle(country) : string.Empty
+                    };
                 })
                 .ToList();
 
-            var followersCount = await context.UserFollowings.CountAsync(uf => uf.FolowingId == profileData.UserId);
-            var followingCount = await context.UserFollowings.CountAsync(uf => uf.UserId == profileData.UserId);
-            var friendsCount = await context.UserFollowings
+            var followersCount = isAdminProfile ? 0 : await context.UserFollowings.CountAsync(uf => uf.FolowingId == profileData.UserId);
+            var followingCount = isAdminProfile ? 0 : await context.UserFollowings.CountAsync(uf => uf.UserId == profileData.UserId);
+            var friendsCount = isAdminProfile ? 0 : await context.UserFollowings
                 .Where(uf => uf.UserId == profileData.UserId)
                 .CountAsync(uf => context.UserFollowings.Any(back => back.UserId == uf.FolowingId && back.FolowingId == profileData.UserId));
 
-            var isFollowedByCurrentUser = currentUserId != null && !isOwnProfile && await context.UserFollowings
+            var isFollowedByCurrentUser = !isAdminProfile && !currentUserIsAdmin && currentUserId != null && !isOwnProfile && await context.UserFollowings
                 .AnyAsync(uf => uf.UserId == currentUserId.Value && uf.FolowingId == profileData.UserId);
 
             return new ProfileViewModel
@@ -483,9 +527,16 @@ namespace LiveMap.Web.Controllers
                 FriendsCount = friendsCount,
                 IsOwnProfile = isOwnProfile,
                 IsFollowedByCurrentUser = isFollowedByCurrentUser,
+                IsAdminProfile = isAdminProfile,
                 Folders = visibleFolders,
                 NewFolder = new FolderCreateDto { IsCountryFolder = true, Acssesability = Acssesability.Public }
             };
+        }
+
+        private Task<bool> IsAdminUserAsync(Guid userId)
+        {
+            return context.UserRoles
+                .AnyAsync(ur => ur.UserId == userId && context.Roles.Any(r => r.Id == ur.RoleId && r.Name == AdminService.AdminRoleName));
         }
     }
 }
