@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;
 using LiveMap.Web.Helpers;
 using LiveMap.Core.Services;
+using Microsoft.AspNetCore.Identity;
 
 namespace LiveMap.Web.Controllers
 {
@@ -21,13 +22,23 @@ namespace LiveMap.Web.Controllers
         private readonly IImageService imageService;
         private readonly IFolderService folderService;
         private readonly LiveMapDbContext context;
+        private readonly UserManager<User> userManager;
+        private readonly SignInManager<User> signInManager;
 
-        public ProfileController(IProfileService profileService, IImageService imageService, IFolderService folderService, LiveMapDbContext context)
+        public ProfileController(
+            IProfileService profileService,
+            IImageService imageService,
+            IFolderService folderService,
+            LiveMapDbContext context,
+            UserManager<User> userManager,
+            SignInManager<User> signInManager)
         {
             this.profileService = profileService;
             this.imageService = imageService;
             this.folderService = folderService;
             this.context = context;
+            this.userManager = userManager;
+            this.signInManager = signInManager;
         }
 
         public async Task<IActionResult> Index()
@@ -386,6 +397,7 @@ namespace LiveMap.Web.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(ProfileEditDto dto, IFormFile? imageFile)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -395,23 +407,66 @@ namespace LiveMap.Web.Controllers
                 return Unauthorized();
             }
 
+            var currentUser = await userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Unauthorized();
+            }
+
             if (!ModelState.IsValid)
             {
                 return View(dto);
             }
 
+            var normalizedRequestedUsername = dto.Username.Trim();
+            var existingUser = await userManager.FindByNameAsync(normalizedRequestedUsername);
+            if (existingUser != null && existingUser.Id != currentUser.Id)
+            {
+                ModelState.AddModelError(nameof(dto.Username), "This username is already taken.");
+                return View(dto);
+            }
+
             if (imageFile != null && imageFile.Length > 0)
             {
-                var imageResult = await imageService.UploadImageAsync(
-                    imageFile,
-                    Guid.NewGuid().ToString(),
-                    "profiles");
+                try
+                {
+                    var imageResult = await imageService.UploadImageAsync(
+                        imageFile,
+                        Guid.NewGuid().ToString(),
+                        "profiles");
 
-                dto.ProfilePicture = imageResult.Url;
+                    dto.ProfilePicture = imageResult.Url;
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError(string.Empty, ex.Message);
+                    return View(dto);
+                }
+            }
+
+            dto.Username = normalizedRequestedUsername;
+
+            if (!string.Equals(currentUser.UserName, dto.Username, StringComparison.Ordinal))
+            {
+                currentUser.UserName = dto.Username;
+                currentUser.NormalizedUserName = dto.Username.ToUpperInvariant();
+
+                var updateResult = await userManager.UpdateAsync(currentUser);
+                if (!updateResult.Succeeded)
+                {
+                    foreach (var error in updateResult.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, error.Description);
+                    }
+
+                    return View(dto);
+                }
             }
 
             await profileService.EditProfileAsync(dto, userId);
+            await signInManager.RefreshSignInAsync(currentUser);
 
+            TempData["SuccessMessage"] = "Profile updated successfully.";
             return RedirectToAction(nameof(Index));
         }
 

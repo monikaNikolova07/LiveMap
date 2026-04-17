@@ -80,12 +80,6 @@ namespace LiveMap.Core.Services
             profile.Bio = dto.Bio;
             profile.ProfilePicture = dto.ProfilePicture;
 
-            if (profile.User != null)
-            {
-                profile.User.UserName = dto.Username;
-                profile.User.NormalizedUserName = dto.Username.ToUpperInvariant();
-            }
-
             await context.SaveChangesAsync();
         }
     }

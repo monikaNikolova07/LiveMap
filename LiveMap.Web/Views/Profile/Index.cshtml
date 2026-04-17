@@ -1,4 +1,10 @@
 @model LiveMap.Web.Models.Profile.ProfileViewModel
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
 @{
     var isPublicProfile = !Model.IsOwnProfile;
     ViewData["Title"] = Model.IsAdminProfile ? "Admin Profile" : (isPublicProfile ? $"{Model.Username} Profile" : "My Profile");
