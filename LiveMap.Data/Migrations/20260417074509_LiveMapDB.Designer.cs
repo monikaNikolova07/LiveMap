@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LiveMap.Data.Migrations
 {
     [DbContext(typeof(LiveMapDbContext))]
-    [Migration("20260403063156_LiveMapDB")]
+    [Migration("20260417074509_LiveMapDB")]
     partial class LiveMapDB
     {
         /// <inheritdoc />
